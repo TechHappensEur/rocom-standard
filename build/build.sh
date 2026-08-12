@@ -91,20 +91,98 @@ PYEOF
 [ -f "$REPO_DIR/spec/part-02-conformance/CONFORMANCE.md" ] && convert_md "$REPO_DIR/spec/part-02-conformance/CONFORMANCE.md" "part-02-conformance.html" && echo "  part-02-conformance.html"
 [ -f "$REPO_DIR/spec/part-05-transport/PROFILE.md" ]       && convert_md "$REPO_DIR/spec/part-05-transport/PROFILE.md"       "part-05-transport.html"       && echo "  part-05-transport.html"
 
-# YAML modules page
+# Principles & Architecture
+[ -f "$REPO_DIR/docs/principles-and-architecture/PRINCIPLES.md" ] && convert_md "$REPO_DIR/docs/principles-and-architecture/PRINCIPLES.md" "principles.html" && echo "  principles.html"
+
+# YAML modules page — render as formatted requirement tables
 python3 - "$REPO_DIR" "$OUTPUT_DIR" "$TEMPLATE" << 'PYEOF'
-import sys, os, glob, re
+import sys, os, glob, re, subprocess
 repo_dir, output_dir, template = sys.argv[1:]
 
-content = "<div class='doc-meta'><strong>YAML Modules</strong> — Specification modules authored in YAML.</div>"
+def html_esc(s):
+    return str(s).replace('&', '&amp;').replace('<', '&lt;').replace('>', '&gt;').replace('"', '&quot;')
+
+def render_principles(principles):
+    if not principles:
+        return ''
+    rows = ''
+    for p in principles:
+        pid = html_esc(p.get('id', ''))
+        stmt = html_esc(p.get('statement', ''))
+        rows += f'<tr><td><code>{pid}</code></td><td>{stmt}</td></tr>\n'
+    return f'<table><thead><tr><th style="width:140px">ID</th><th>Principle</th></tr></thead><tbody>\n{rows}</tbody></table>'
+
+def render_requirements(reqs):
+    if not reqs:
+        return ''
+    # Group by level
+    by_level = {}
+    for r in reqs:
+        lvl = r.get('level', 'unknown')
+        by_level.setdefault(lvl, []).append(r)
+    level_names = {'L1': 'L1 — Pilot / Lab', 'L2': 'L2 — Production Single Site', 'L3': 'L3 — Production Multi-Site', 'L1+': 'All Levels'}
+    sections = ''
+    for lvl in ['L1', 'L2', 'L3', 'L1+']:
+        items = by_level.get(lvl, [])
+        if not items:
+            continue
+        rows = ''
+        for r in items:
+            rid = html_esc(r.get('id', ''))
+            stmt = html_esc(r.get('statement', ''))
+            ver = html_esc(r.get('verification', ''))
+            rows += f'<tr><td><code>{rid}</code></td><td>{stmt}</td><td><small>{ver}</small></td></tr>\n'
+        lbl = level_names.get(lvl, lvl)
+        sections += f'<h3>{lbl}</h3>\n<table><thead><tr><th style="width:110px">ID</th><th>Requirement</th><th style="width:200px">Verification</th></tr></thead><tbody>\n{rows}</tbody></table>\n'
+    return sections
+
+content = "<div class='doc-meta'><strong>Specification Modules</strong> — YAML modules rendered as requirement tables.</div>"
 for yp in sorted(glob.glob(os.path.join(repo_dir, 'spec', 'part-*', '*.yaml'))):
     yn = os.path.basename(yp)
     lp = os.path.basename(os.path.dirname(yp))
     with open(yp) as f:
-        yml = f.read()
-    # Escape HTML
-    yml = yml.replace('&', '&amp;').replace('<', '&lt;').replace('>', '&gt;')
-    content += f'<h2>{lp}: {yn}</h2><pre><code>{yml}</code></pre><hr/>'
+        raw = f.read()
+    # Strip comment headers for pandoc
+    clean = raw
+    for pat in [r'^# FILE:.*', r'^# ===.*', r'^# Status:.*', r'^# License:.*', r'^# Scope:.*', r'^# NOTE:.*']:
+        clean = re.sub(pat, '', clean, flags=re.M)
+    # Try to render intro text via pandoc
+    intro = ''
+    try:
+        result = subprocess.run(['pandoc', '-f', 'markdown', '-t', 'html', '--wrap=none'],
+            input=clean[:500], capture_output=True, text=True, check=True)
+        intro = result.stdout.strip()
+    except:
+        pass
+    # Parse YAML for tables
+    import yaml
+    try:
+        data = yaml.safe_load(raw)
+    except:
+        data = {}
+    content += f'<h2>{html_esc(lp)}: {html_esc(yn)}</h2>\n'
+    if intro:
+        content += intro + '\n'
+    content += render_principles(data.get('principals', data.get('principles', [])))
+    content += render_requirements(data.get('requirements', []))
+    # Data classes table
+    if data.get('data_classes'):
+        rows = ''
+        for dc in data['data_classes']:
+            c = html_esc(dc.get('class', ''))
+            d = html_esc(dc.get('definition', ''))
+            pd = html_esc(dc.get('personal_data', ''))
+            rows += f'<tr><td><strong>{c}</strong></td><td>{d}</td><td>{pd}</td></tr>\n'
+        content += f'<h3>Data Classes</h3>\n<table><thead><tr><th>Class</th><th>Definition</th><th>Personal Data?</th></tr></thead><tbody>\n{rows}</tbody></table>\n'
+    # Regulatory mapping
+    if data.get('regulatory_mapping'):
+        rows = ''
+        for rm in data['regulatory_mapping']:
+            reg = html_esc(rm.get('regime', ''))
+            rel = html_esc(rm.get('relevance', ''))
+            rows += f'<tr><td><strong>{reg}</strong></td><td>{rel}</td></tr>\n'
+        content += f'<h3>Regulatory Mapping</h3>\n<table><thead><tr><th>Regime</th><th>Relevance</th></tr></thead><tbody>\n{rows}</tbody></table>\n'
+    content += '<hr/>\n'
 
 with open(template) as f:
     tpl = f.read()
