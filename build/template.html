@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{{TITLE}} — Rocom Specification</title>
+  <style>
+    /* === Reset & Base === */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; font-size: 16px; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      color: #222;
+      background: #fff;
+      line-height: 1.6;
+    }
+
+    /* === Header Bar === */
+    .header {
+      background: #1a3a5c;
+      color: #fff;
+      padding: 0.75rem 2rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 100;
+      height: 56px;
+    }
+    .header-brand {
+      font-size: 1.15rem;
+      font-weight: 700;
+      letter-spacing: 0.03em;
+    }
+    .header-brand span {
+      color: #7eb8da;
+    }
+    .header-meta {
+      font-size: 0.75rem;
+      color: #9bbdd4;
+      text-align: right;
+    }
+    .header-meta a { color: #9bbdd4; text-decoration: none; }
+    .header-meta a:hover { color: #fff; }
+
+    /* === Layout === */
+    .layout {
+      display: flex;
+      margin-top: 56px;
+      min-height: calc(100vh - 56px);
+    }
+
+    /* === Sidebar === */
+    .sidebar {
+      width: 260px;
+      min-width: 260px;
+      background: #f7f8fa;
+      border-right: 1px solid #e2e5ea;
+      padding: 1.5rem 0;
+      position: fixed;
+      top: 56px;
+      bottom: 0;
+      overflow-y: auto;
+      font-size: 0.85rem;
+    }
+    .sidebar-section {
+      padding: 0.5rem 1.5rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: #6b7280;
+      font-size: 0.7rem;
+      margin-top: 1rem;
+    }
+    .sidebar-section:first-child { margin-top: 0; }
+    .sidebar a {
+      display: block;
+      padding: 0.35rem 1.5rem;
+      color: #374151;
+      text-decoration: none;
+      border-left: 3px solid transparent;
+      transition: all 0.15s;
+    }
+    .sidebar a:hover {
+      background: #eef1f5;
+      color: #1a3a5c;
+      border-left-color: #7eb8da;
+    }
+    .sidebar a.active {
+      background: #e8f0f8;
+      color: #1a3a5c;
+      font-weight: 600;
+      border-left-color: #1a3a5c;
+    }
+
+    /* === Main Content === */
+    .main {
+      margin-left: 260px;
+      flex: 1;
+      padding: 2.5rem 3rem 4rem;
+      max-width: 860px;
+    }
+    .main h1 {
+      font-size: 1.75rem;
+      font-weight: 700;
+      color: #1a3a5c;
+      margin-bottom: 0.5rem;
+      padding-bottom: 0.5rem;
+      border-bottom: 2px solid #e2e5ea;
+    }
+    .main h2 {
+      font-size: 1.3rem;
+      font-weight: 600;
+      color: #1a3a5c;
+      margin-top: 2rem;
+      margin-bottom: 0.75rem;
+    }
+    .main h3 {
+      font-size: 1.1rem;
+      font-weight: 600;
+      color: #374151;
+      margin-top: 1.5rem;
+      margin-bottom: 0.5rem;
+    }
+    .main p {
+      margin-bottom: 1rem;
+    }
+    .main code {
+      background: #f3f4f6;
+      padding: 0.15em 0.4em;
+      border-radius: 3px;
+      font-size: 0.88em;
+      font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+    }
+    .main pre {
+      background: #f7f8fa;
+      border: 1px solid #e2e5ea;
+      border-radius: 4px;
+      padding: 1rem;
+      overflow-x: auto;
+      margin-bottom: 1rem;
+      font-size: 0.85rem;
+      line-height: 1.5;
+    }
+    .main pre code {
+      background: none;
+      padding: 0;
+      font-size: inherit;
+    }
+    .main blockquote {
+      border-left: 4px solid #7eb8da;
+      padding: 0.75rem 1rem;
+      margin: 1rem 0;
+      background: #f0f6fb;
+      color: #374151;
+    }
+    .main table {
+      border-collapse: collapse;
+      width: 100%;
+      margin-bottom: 1rem;
+      font-size: 0.9rem;
+    }
+    .main th {
+      background: #f7f8fa;
+      font-weight: 600;
+      text-align: left;
+      padding: 0.6rem 0.8rem;
+      border: 1px solid #d1d5db;
+    }
+    .main td {
+      padding: 0.5rem 0.8rem;
+      border: 1px solid #e2e5ea;
+    }
+    .main ul, .main ol {
+      margin: 0.5rem 0 1rem 1.5rem;
+    }
+    .main li {
+      margin-bottom: 0.3rem;
+    }
+    .main hr {
+      border: none;
+      border-top: 1px solid #e2e5ea;
+      margin: 2rem 0;
+    }
+
+    /* === Status Badge === */
+    .status-badge {
+      display: inline-block;
+      padding: 0.2rem 0.6rem;
+      border-radius: 3px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+    .status-draft { background: #fef3c7; color: #92400e; }
+    .status-final { background: #d1fae5; color: #065f46; }
+
+    /* === Document Meta Block === */
+    .doc-meta {
+      background: #f7f8fa;
+      border: 1px solid #e2e5ea;
+      border-radius: 4px;
+      padding: 1rem 1.25rem;
+      margin-bottom: 2rem;
+      font-size: 0.85rem;
+      color: #6b7280;
+    }
+    .doc-meta strong { color: #374151; }
+
+    /* === Footer === */
+    .footer {
+      margin-left: 260px;
+      padding: 1.5rem 3rem;
+      border-top: 1px solid #e2e5ea;
+      font-size: 0.75rem;
+      color: #9ca3af;
+      text-align: center;
+    }
+    .footer a { color: #6b7280; text-decoration: none; }
+    .footer a:hover { color: #1a3a5c; }
+
+    /* === TOC === */
+    .toc {
+      background: #f7f8fa;
+      border: 1px solid #e2e5ea;
+      border-radius: 4px;
+      padding: 1rem 1.25rem;
+      margin-bottom: 2rem;
+      font-size: 0.9rem;
+    }
+    .toc h3 {
+      font-size: 0.8rem;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: #6b7280;
+      margin-top: 0;
+      margin-bottom: 0.5rem;
+    }
+    .toc ul { list-style: none; margin: 0; padding: 0; }
+    .toc li { margin: 0.2rem 0; }
+    .toc a { color: #1a3a5c; text-decoration: none; }
+    .toc a:hover { text-decoration: underline; }
+
+    /* === Responsive === */
+    @media (max-width: 768px) {
+      .sidebar { display: none; }
+      .main { margin-left: 0; padding: 1.5rem; }
+      .footer { margin-left: 0; }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="header">
+    <div class="header-brand">R<span>ocom</span> Specification</div>
+    <div class="header-meta">
+      Edition 2026a (draft) &middot; CC-BY 4.0 &middot;
+      <a href="https://github.com/TechHappensEur/rocom-standard">GitHub</a>
+    </div>
+  </div>
+
+  <div class="layout">
+    <nav class="sidebar">
+      <div class="sidebar-section">Overview</div>
+      <a href="index.html">Home</a>
+      <a href="part-01-overview.html">Part 1 &mdash; Overview</a>
+
+      <div class="sidebar-section">Specification</div>
+      <a href="part-02-conformance.html">Part 2 &mdash; Conformance</a>
+      <a href="part-05-transport.html">Part 5 &mdash; Transport</a>
+
+      <div class="sidebar-section">Modules (YAML)</div>
+      <a href="modules.html">All Modules</a>
+
+      <div class="sidebar-section">Supplements</div>
+      <a href="supplements.html">Supplementary Docs</a>
+
+      <div class="sidebar-section">Governance</div>
+      <a href="governance.html">Governance</a>
+      <a href="contributing.html">Contributing</a>
+    </nav>
+
+    <main class="main">
+      {{CONTENT}}
+    </main>
+  </div>
+
+  <div class="footer">
+    Rocom Specification &copy; 2026 Tech Happens Europe &middot;
+    Licensed under <a href="https://creativecommons.org/licenses/by/4.0/">CC-BY 4.0</a> &middot;
+    <a href="https://github.com/TechHappensEur/rocom-standard">Source on GitHub</a>
+  </div>
+
+</body>
+</html>
