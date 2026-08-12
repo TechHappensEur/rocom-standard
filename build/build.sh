@@ -36,26 +36,9 @@ for line in raw.splitlines():
     if line.startswith('# License:'):
         lic = line[len('# License:'):].strip()
 
-# Doc-meta block
-meta = ''
-if status and lic:
-    badge = 'DRAFT'
-    cls = 'status-draft'
-    if any(w in status.lower() for w in ('final', 'published')):
-        badge = 'FINAL'
-        cls = 'status-final'
-    meta = (
-        f"<div class='doc-meta'>"
-        f"<strong>Document:</strong> {title} &nbsp;"
-        f"<span class='status-badge {cls}'>{badge}</span>"
-        f"<br><strong>Status:</strong> {status}"
-        f"<br><strong>License:</strong> {lic}"
-        f"</div>"
-    )
-
 # Strip comment-header lines, pandoc convert
 clean = raw
-for pat in [r'^# FILE:.*', r'^# ===.*']:
+for pat in [r'^# FILE:.*', r'^# ===.*', r'^# Status:.*', r'^# License:.*']:
     clean = re.sub(pat, '', clean, flags=re.M)
 clean = re.sub(r'\n{3,}', '\n\n', clean)
 try:
@@ -65,14 +48,73 @@ try:
     )
     body = result.stdout
 except Exception:
-    # Fallback: basic conversion
     body = clean.replace('\n', '<br>')
+
+# Build nested TOC from headings (DICOM-style)
+def build_toc(html_body):
+    headings = re.findall(r'<h([1-6])(?:\s[^>]*)?>(.*?)</h\1>', html_body, re.DOTALL)
+    if len(headings) < 2:
+        return ''
+    def clean_text(t):
+        return re.sub(r'<[^>]+>', '', t).strip()
+    def make_slug(t):
+        s = re.sub(r'[^\w\s-]', '', t[:60]).lower()
+        return '-'.join(s.split())
+    # Compute depth relative to shallowest heading
+    levels = [int(l) for l, _ in headings]
+    base = min(levels)
+    items = [(int(lvl) - base, make_slug(clean_text(txt)), clean_text(txt)) for lvl, txt in headings]
+    # Simple renderer: track current depth, emit open/close as needed
+    out = ['<div class="toc"><div class="toc-title">Contents</div>']
+    cur_depth = -1
+    prev_depth = -1
+    for i, (depth, slug, txt) in enumerate(items):
+        # Going deeper: open new <ul> for each level
+        while cur_depth < depth:
+            out.append('<ul>')
+            cur_depth += 1
+        # Going shallower: close </li></ul> for each level, then close parent <li>
+        while cur_depth > depth:
+            out.append('</li></ul>')
+            cur_depth -= 1
+            if depth >= 0:
+                out.append('</li>')
+        # Same level as previous: close previous <li>
+        if i > 0 and depth == prev_depth:
+            out.append('</li>')
+        out.append(f'<li><a href="#{slug}">{txt}</a>')
+        prev_depth = depth
+    # Close remaining open lists
+    while cur_depth >= 0:
+        out.append('</li></ul>')
+        cur_depth -= 1
+    out.append('</div>')
+    return ''.join(out)
+
+toc = build_toc(body)
+
+# Doc-meta block
+meta = ''
+if status and lic:
+    badge = 'DRAFT'
+    cls = 'badge-draft'
+    if any(w in status.lower() for w in ('final', 'published')):
+        badge = 'FINAL'
+        cls = 'badge-final'
+    meta = (
+        f"<div class='doc-meta'>"
+        f"<strong>Document:</strong> {title} &nbsp;"
+        f"<span class='badge {cls}'>{badge}</span>"
+        f"<br><strong>Status:</strong> {status}"
+        f"<br><strong>License:</strong> {lic}"
+        f"</div>"
+    )
 
 # Read template and substitute
 with open(template) as f:
     tpl = f.read()
 
-content = meta + '\n' + body if meta else body
+content = meta + toc + '<div class="content">' + body + '</div>'
 html = tpl.replace('{{TITLE}}', title).replace('{{CONTENT}}', content)
 
 with open(os.path.join(output_dir, out), 'w') as f:
@@ -136,7 +178,7 @@ def render_requirements(reqs):
         sections += f'<h3>{lbl}</h3>\n<table><thead><tr><th style="width:110px">ID</th><th>Requirement</th><th style="width:200px">Verification</th></tr></thead><tbody>\n{rows}</tbody></table>\n'
     return sections
 
-content = "<div class='doc-meta'><strong>Specification Modules</strong> — YAML modules rendered as requirement tables.</div>"
+content = "<div class='doc-meta'><strong>Specification Modules</strong> — YAML modules rendered as requirement tables.</div><div class='content'>"
 for yp in sorted(glob.glob(os.path.join(repo_dir, 'spec', 'part-*', '*.yaml'))):
     yn = os.path.basename(yp)
     lp = os.path.basename(os.path.dirname(yp))
@@ -183,6 +225,7 @@ for yp in sorted(glob.glob(os.path.join(repo_dir, 'spec', 'part-*', '*.yaml'))):
             rows += f'<tr><td><strong>{reg}</strong></td><td>{rel}</td></tr>\n'
         content += f'<h3>Regulatory Mapping</h3>\n<table><thead><tr><th>Regime</th><th>Relevance</th></tr></thead><tbody>\n{rows}</tbody></table>\n'
     content += '<hr/>\n'
+content += '</div>'
 
 with open(template) as f:
     tpl = f.read()
@@ -200,7 +243,7 @@ repo_dir, output_dir, template = sys.argv[1:]
 supps = sorted(glob.glob(os.path.join(repo_dir, 'spec', 'supplements', '*.md')))
 
 # Build index page
-content = "<div class='doc-meta'><strong>Supplementary Documents</strong></div>"
+content = "<div class='doc-meta'><strong>Supplementary Documents</strong></div><div class='content'>"
 if supps:
     content += '<ul>'
     for sp in supps:
@@ -209,6 +252,7 @@ if supps:
     content += '</ul>'
 else:
     content += '<p>No supplementary documents yet.</p>'
+content += '</div>'
 
 with open(template) as f:
     tpl = f.read()
@@ -245,11 +289,11 @@ for sp in supps:
     meta = ''
     if status and lic:
         badge = 'PROPOSAL'
-        cls = 'status-draft'
+        cls = 'badge-draft'
         meta = (
             f"<div class='doc-meta'>"
             f"<strong>Document:</strong> {title} &nbsp;"
-            f"<span class='status-badge {cls}'>{badge}</span>"
+            f"<span class='badge {cls}'>{badge}</span>"
             f"<br><strong>Status:</strong> {status}"
             f"<br><strong>License:</strong> {lic}"
             f"</div>"
@@ -265,7 +309,7 @@ for sp in supps:
     except Exception:
         body = '<pre>' + clean.replace('&', '&amp;').replace('<', '&lt;').replace('>', '&gt;') + '</pre>'
 
-    full_content = (meta + '\n' + body) if meta else body
+    full_content = meta + '<div class="content">' + body + '</div>'
     with open(template) as f:
         tpl = f.read()
     html = tpl.replace('{{TITLE}}', title).replace('{{CONTENT}}', full_content)
