@@ -34,50 +34,37 @@ data flow passes through the convergence layer (see Part 7, dg-p-001).
 that allows incremental adoption. A system conforming to L2 satisfies
 all L1 requirements.
 
-# 3. Architecture — The Five Rings
+# 3. Architecture — Specification Layers
+
+The specification is structured as seven Parts, of which Parts 3 through
+7 describe layered system architecture. Parts 1 and 2 are meta-specification
+(overview, conformance rules) and do not correspond to runtime layers.
 
 ```
-          +----------------------------------+
-          |        Ring 7: Data Governance   |
-          |  (data classification, egress)   |
-          +----------------------------------+
-                    |
-          +----------------------------------+
-          |      Ring 6: Security            |
-          |  (identity, trust, mTLS)         |
-          +----------------------------------+
-                    |
-          +----------------------------------+
-          |    Ring 5: Transport Profile     |
-          |  (VDA 5050 binding, capabilities)|
-          +----------------------------------+
-                    |
-          +----------------------------------+
-          |    Ring 4: Service Contracts     |
-          |  (availability, task-source)     |
-          +----------------------------------+
-                    |
-          +----------------------------------+
-          |    Ring 3: Information Model     |
-          |  (agent, task, data profile)     |
-          +----------------------------------+
-                    |
-          +----------------------------------+
-          |      Ring 2: Conformance         |
-          |  (L1–L3 levels, statement)       |
-          +----------------------------------+
-                    |
-          +----------------------------------+
-          |     Ring 1: Overview & Scope     |
-          |  (architecture, terminology)     |
-          +----------------------------------+
-                    |
-              [ Robot Fleet / OT Zone ]
+  Architecture layers (runtime):
+
+    Part 7  Data Governance    — data classification, egress control
+         |
+    Part 6  Security           — machine identity, trust, mTLS
+         |
+    Part 5  Transport Profile  — VDA 5050 binding, capability registry
+         |
+    Part 4  Service Contracts  — availability provider, task source
+         |
+    Part 3  Information Model  — agent, task, data profile types
+         |
+          [ Robot Fleet / OT Zone ]
+
+  Specification structure (all Parts):
+
+    Part 1  Overview and Scope     — architecture, terminology, zone model
+    Part 2  Conformance            — L1–L3 levels, conformance statement
+    Parts 3–7  (architecture layers, shown above)
 ```
 
-Each ring maps to a Part of this specification. Parts are dependency-ordered:
-Part N requires Parts 1 through N-1. Part 3 (Information Model) is a
-foundation — Parts 4 through 7 reference its types verbatim.
+Parts are dependency-ordered: Part N requires Parts 1 through N-1.
+Part 3 (Information Model) is a foundation — Parts 4 through 7 reference
+its types verbatim.
 
 # 4. IT/OT Zone Model
 

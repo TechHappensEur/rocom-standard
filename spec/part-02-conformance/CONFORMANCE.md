@@ -1,4 +1,3 @@
-# FILE: spec/part-02-conformance/CONFORMANCE.md
 # =====================================================================
 # Rocom — Part 2: Conformance
 # Status: DRAFT 0.1 (2026-08-12) — Edition 2026a (draft)
@@ -65,7 +64,7 @@ conformance_scope:
   # For each Part with status "partial", list non-conforming requirements:
   deviations:
     - part: 5
-      requirement: "P-2.3.1"
+      requirement: "p-req-201"
       status: not-implemented
       rationale: "TODO — explanation"
       planned_resolution: "TODO — target date or edition"
