@@ -13,6 +13,10 @@ The Rocom specification is stewarded by **Tech Happens Europe ApS**
 
 ## Stewardship Principles
 
+0. **Held in trust.** The specification, domain and word mark
+   are held in trust for the standard; the certification program
+   is a commercial service of the steward.
+
 1. **Vendor neutrality.** The specification MUST NOT contain language
    that advantages or disadvantages any specific vendor, product, or
    national scheme. Implementations are examples, not requirements.
@@ -45,21 +49,22 @@ or sell robot hardware, ensuring no conflict of interest.
 
 ## Advisory Board
 
-The steward maintains an Advisory Board of independent experts from
-healthcare IT, robotics, and standards organizations. The Board:
+The steward will establish and maintain an Advisory Board of independent
+experts from healthcare IT, robotics, and standards organizations. The Board:
 
 - Reviews major Part revisions before publication
 - Advises on Edition timing
 - Provides input on conformance criteria
 
-Board membership is public. Nomination and selection criteria are
-published as a Supplement.
+Board membership will be public. Nomination and selection criteria are
+published as a Supplement. The Board is not yet constituted (Edition 2026a draft).
 
 ## Funding
 
-The Rocom specification is developed with support from Danish foundation
-grants (fondsstøttet). Funding sources do not influence specification
-content.
+The steward seeks foundation and public grant support for the
+development of the specification; no external funding has been
+received to date. Funding sources will not influence
+specification content.
 
 ## Contact
 
