@@ -54,10 +54,13 @@ if status and lic:
     )
 
 # Strip comment-header lines, pandoc convert
-clean = re.sub(r'^# (?:FILE:|===.*)', '', raw, flags=re.M)
+clean = raw
+for pat in [r'^# FILE:.*', r'^# ===.*']:
+    clean = re.sub(pat, '', clean, flags=re.M)
+clean = re.sub(r'\n{3,}', '\n\n', clean)
 try:
     result = subprocess.run(
-        ['pandoc', '-f', 'markdown', '-t', 'html', '--standalone=no', '--wrap=none'],
+        ['pandoc', '-f', 'markdown', '-t', 'html', '--wrap=none'],
         input=clean, capture_output=True, text=True, check=True
     )
     body = result.stdout
@@ -110,32 +113,85 @@ with open(os.path.join(output_dir, 'modules.html'), 'w') as f:
 PYEOF
 echo "  modules.html"
 
-# Supplements page
+# Supplements page — each gets its own page, plus an index
 python3 - "$REPO_DIR" "$OUTPUT_DIR" "$TEMPLATE" << 'PYEOF'
 import sys, os, glob, re, subprocess
 repo_dir, output_dir, template = sys.argv[1:]
 
+supps = sorted(glob.glob(os.path.join(repo_dir, 'spec', 'supplements', '*.md')))
+
+# Build index page
 content = "<div class='doc-meta'><strong>Supplementary Documents</strong></div>"
-for sp in sorted(glob.glob(os.path.join(repo_dir, 'spec', 'supplements', '*.md'))):
-    sn = os.path.basename(sp).replace('.md', '')
-    with open(sp) as f:
-        raw = f.read()
-    clean = re.sub(r'^# (?:FILE:|===.*)', '', raw, flags=re.M)
-    try:
-        result = subprocess.run(
-            ['pandoc', '-f', 'markdown', '-t', 'html', '--standalone=no', '--wrap=none'],
-            input=clean, capture_output=True, text=True, check=True
-        )
-        body = result.stdout
-    except Exception:
-        body = clean
-    content += f'<h2>{sn}</h2>{body}<hr/>'
+if supps:
+    content += '<ul>'
+    for sp in supps:
+        sn = os.path.basename(sp).replace('.md', '')
+        content += f'<li><a href="supplement-{sn}.html">{sn}</a></li>'
+    content += '</ul>'
+else:
+    content += '<p>No supplementary documents yet.</p>'
 
 with open(template) as f:
     tpl = f.read()
 html = tpl.replace('{{TITLE}}', 'Supplements').replace('{{CONTENT}}', content)
 with open(os.path.join(output_dir, 'supplements.html'), 'w') as f:
     f.write(html)
+
+# Build individual pages
+for sp in supps:
+    sn = os.path.basename(sp).replace('.md', '')
+    with open(sp) as f:
+        raw = f.read()
+    # Strip all comment-header lines (# FILE:, # ===, # Sup-xxx, # Status:, # License:, # Scope:, # NOTE:, and indented # lines)
+    clean = raw
+    for pat in [r'^# FILE:.*', r'^# ===.*', r'^# Status:.*', r'^# License:.*', r'^# Scope:.*', r'^# NOTE:.*', r'^#[A-Z]{3}-\d+.*', r'^#\s+.+']:
+        clean = re.sub(pat, '', clean, flags=re.M)
+    clean = re.sub(r'\n{3,}', '\n\n', clean)
+
+    # Extract metadata from comment headers
+    status = ''
+    lic = ''
+    for line in raw.splitlines():
+        if line.startswith('# Status:'): status = line[len('# Status:'):].strip()
+        if line.startswith('# License:'): lic = line[len('# License:'):].strip()
+
+    # Title from comment header (# Sup-001 ...) or filename with dashes replaced
+    title = sn.replace('-', ' ').title()
+    for line in raw.splitlines():
+        if line.startswith('# Sup-') or line.startswith('# sup-'):
+            title = line[2:].strip()
+            break
+
+    # Doc-meta
+    meta = ''
+    if status and lic:
+        badge = 'PROPOSAL'
+        cls = 'status-draft'
+        meta = (
+            f"<div class='doc-meta'>"
+            f"<strong>Document:</strong> {title} &nbsp;"
+            f"<span class='status-badge {cls}'>{badge}</span>"
+            f"<br><strong>Status:</strong> {status}"
+            f"<br><strong>License:</strong> {lic}"
+            f"</div>"
+        )
+
+    # Convert
+    try:
+        result = subprocess.run(
+        ['pandoc', '-f', 'markdown', '-t', 'html', '--wrap=none'],
+            input=clean, capture_output=True, text=True, check=True
+        )
+        body = result.stdout
+    except Exception:
+        body = '<pre>' + clean.replace('&', '&amp;').replace('<', '&lt;').replace('>', '&gt;') + '</pre>'
+
+    full_content = (meta + '\n' + body) if meta else body
+    with open(template) as f:
+        tpl = f.read()
+    html = tpl.replace('{{TITLE}}', title).replace('{{CONTENT}}', full_content)
+    with open(os.path.join(output_dir, f'supplement-{sn}.html'), 'w') as f:
+        f.write(html)
 PYEOF
 echo "  supplements.html"
 
