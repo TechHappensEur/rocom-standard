@@ -1,0 +1,95 @@
+# FILE: spec/supplements/Sup-001-Orchestrator-Service-Interface.md
+# Sup-001 — Orchestrator Service Interface
+# Status: PROPOSAL (2026-08-12)
+# License: CC-BY 4.0
+# Scope: Define the normative orchestrator service interface by splitting
+#        the HRRM product API into standard and product-specific endpoints.
+# NOTE:  This is a scope proposal. No normative text until approved.
+
+## Purpose
+
+The orchestrator service interface defines the REST API that any
+conformant orchestrator MUST implement. Currently, the HRRM product
+API (17 endpoints) mixes standard requirements with product-specific
+features. This supplement proposes a split so that the standard can
+specify the interface independently of any single implementation.
+
+## Endpoint Analysis
+
+### 1. Agents — NORMATIVE (all 7 endpoints)
+
+| Endpoint | Rationale |
+|----------|-----------|
+| `GET /agents` | Every orchestrator MUST expose its agent registry. Foundational. |
+| `POST /agents` | Agent onboarding is a core orchestrator function (Part 6, it-p-002). |
+| `GET /agents/{id}` | Single-agent lookup is required for task allocation and auditing. |
+| `PATCH /agents/{id}` | Capability and status updates are fundamental to agent lifecycle. |
+| `DELETE /agents/{id}` | Agent offboarding (deregistration) is required by Part 6 (it-p-002). |
+| `GET /agents/{id}/availability` | Availability polling is the standard contract for availability providers (Part 4). |
+| `GET /agents/{id}/data-profile` | Data profile retrieval is required by Part 7 (dg-req-001). |
+
+**Verdict:** All 7 endpoints are normative minimum for any orchestrator.
+
+### 2. Tasks — NORMATIVE (4 endpoints)
+
+| Endpoint | Rationale |
+|----------|-----------|
+| `GET /tasks` | Task listing is fundamental to orchestrator visibility. |
+| `POST /tasks` | Task creation is the primary input to the orchestrator (Part 4, task-source contract). |
+| `GET /tasks/{id}` | Single-task lookup required for status tracking and auditing. |
+| `PATCH /tasks/{id}` | Task status updates are fundamental (assignment, completion, cancellation). |
+
+**Verdict:** All 4 endpoints are normative minimum. The "Cancel Task"
+request (`PATCH /tasks/{id}` with `status: cancelled`) is a status
+update, not a separate endpoint — covered by the PATCH above.
+
+### 3. Audit — NORMATIVE (2 endpoints)
+
+| Endpoint | Rationale |
+|----------|-----------|
+| `GET /audit` | Audit trail access is required by Part 2 (conformance) and Part 6 (it-p-004). |
+| `GET /audit/verify` | Cryptographic verification is required for Part 6 conformance (immutable audit trail). |
+
+**Verdict:** Both endpoints are normative. The audit trail is a
+cross-cutting requirement that every conformant orchestrator MUST provide.
+
+### 4. Proposals — PRODUCT-SPECIFIC (3 endpoints)
+
+| Endpoint | Rationale |
+|----------|-----------|
+| `POST /proposals` | Proposal generation with strategies (`greedy`, `cost_optimized`, `fastest`) is an HRRM-specific allocation approach. |
+| `POST /proposals/{id}/accept` | The accept/reject workflow is HRRM's human-in-the-loop design choice. |
+| `POST /proposals/{id}/reject` | Same — a product-specific approval workflow. |
+
+**Verdict:** Product-specific. Other orchestrators may use direct
+assignment, automated allocation, or different approval workflows.
+The standard MUST NOT prescribe the proposal model — it is one valid
+approach among many.
+
+## Proposed Split
+
+| Category | Endpoints | Standard? |
+|----------|-----------|-----------|
+| Agents | 7 | YES — normative (Part 8: Orchestrator Service Interface) |
+| Tasks | 4 | YES — normative |
+| Audit | 2 | YES — normative |
+| Proposals | 3 | NO — HRRM product feature |
+
+**Standard interface:** 13 endpoints (Agents + Tasks + Audit)
+**HRRM-specific:** 3 endpoints (Proposals)
+
+## Recommendation
+
+1. Create Part 8 (Orchestrator Service Interface) with the 13 normative
+   endpoints as OpenAPI specification.
+2. HRRM's Postman collection references the standard's 13 endpoints via
+   submodule and extends with its own 3 proposal endpoints.
+3. The proposal model is documented in HRRM product docs, not in the standard.
+
+## Pending Approval
+
+This supplement is a PROPOSAL. No normative text is created until Egil
+reviews and approves the split. After approval:
+- Part 8 is drafted as OpenAPI spec (vendor-neutral, "orchestrator")
+- Conformance Postman collection is generated
+- HRRM collection is updated to reference the standard via submodule
