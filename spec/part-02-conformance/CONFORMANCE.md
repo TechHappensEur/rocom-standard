@@ -20,7 +20,9 @@ Part.
 
 A conformant implementation MUST produce a Conformance Statement
 following the template below. The statement is a public document
-published by the implementer.
+published by the implementer. The `build_provenance` section is
+mandatory: conformance claims must be reproducible against an
+identifiable build artifact, not against source code alone.
 
 # 3. Conformance Statement Template
 
@@ -68,6 +70,17 @@ conformance_scope:
       status: not-implemented
       rationale: "TODO — explanation"
       planned_resolution: "TODO — target date or edition"
+
+# Build Provenance
+# Conformance claims must be tied to an identifiable build. Source code
+# alone does not constitute evidence: the compiled artifact, toolchain,
+# and build environment must be reproducible for audit.
+build_provenance:
+  toolchain: "TODO — compiler/runtime and version (e.g., 'Ferrocene 26.02.0', 'rustc 1.75.0')"
+  target: "TODO — compilation target triple (e.g., 'x86_64-unknown-linux-gnu')"
+  build_command: "TODO — reproducible build command (e.g., 'cargo build --release')"
+  artifact_hash: "TODO — SHA-256 of the compiled binary or test artifact"
+  build_log_reference: "TODO — URL or path to the build log"
 
 # Test Evidence
 test_evidence:
