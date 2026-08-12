@@ -1,0 +1,137 @@
+# FILE: specs/rocom-profile/capability-registry.yaml
+capabilities:
+  transport.medication:
+    label: Medication Transport
+    description: >
+      Transport of pharmaceutical products requiring temperature monitoring
+      and chain-of-custody tracking.
+    params:
+      temperatureRange:
+        type: object
+        properties:
+          min: { type: number, unit: celsius }
+          max: { type: number, unit: celsius }
+        default:
+          min: 2
+          max: 8
+      chainOfCustody:
+        type: boolean
+        default: true
+    compliance:
+      - gdpr: false
+      - cyber_resilience_act: true
+      - restricted_zones: true
+
+  transport.sample:
+    label: Sample Transport
+    description: >
+      Transport of laboratory samples requiring biohazard classification
+      and chain-of-custody integrity.
+    params:
+      biohazardLevel:
+        type: string
+        enum: [none, low, medium, high]
+        default: low
+      chainOfCustody:
+        type: boolean
+        default: true
+    compliance:
+      - gdpr: false
+      - cyber_resilience_act: true
+      - restricted_zones: true
+
+  transport.meal:
+    label: Meal Transport
+    description: >
+      Transport of patient meals with temperature maintenance and
+      delivery-time guarantees.
+    params:
+      temperatureRange:
+        type: object
+        properties:
+          min: { type: number, unit: celsius }
+          max: { type: number, unit: celsius }
+        default:
+          min: 60
+          max: 75
+      deliveryTimeMax:
+        type: integer
+        unit: minutes
+        default: 30
+    compliance:
+      - gdpr: false
+      - cyber_resilience_act: true
+      - restricted_zones: false
+
+  cleaning.floor:
+    label: Floor Cleaning
+    description: Automated floor cleaning in corridors and public areas.
+    params:
+      cleaningMethod:
+        type: string
+        enum: [dry, wet, disinfectant]
+        default: wet
+      areaType:
+        type: string
+        enum: [corridor, ward, public, operating_theatre_ante]
+    compliance:
+      - gdpr: false
+      - cyber_resilience_act: true
+      - restricted_zones: false
+
+  cleaning.uv:
+    label: UV Disinfection
+    description: >
+      Autonomous UV-C disinfection cycles in isolated rooms.
+      Requires zone lockdown verification before activation.
+    params:
+      uvWavelength:
+        type: integer
+        unit: nm
+        default: 254
+      cycleDuration:
+        type: integer
+        unit: minutes
+        default: 30
+      zoneLockdownRequired:
+        type: boolean
+        default: true
+    compliance:
+      - gdpr: false
+      - cyber_resilience_act: true
+      - restricted_zones: true
+
+  delivery.linen:
+    label: Linen Delivery
+    description: Transport of clean or soiled linen between laundry and wards.
+    params:
+      linenType:
+        type: string
+        enum: [clean, soiled]
+        default: clean
+      loadCapacity:
+        type: integer
+        unit: kg
+        default: 50
+    compliance:
+      - gdpr: false
+      - cyber_resilience_act: true
+      - restricted_zones: false
+
+  delivery.waste:
+    label: Waste Delivery
+    description: >
+      Transport of general or clinical waste to disposal areas.
+      Segregation of hazardous waste requires certified capability level.
+    params:
+      wasteType:
+        type: string
+        enum: [general, clinical, hazardous]
+        default: general
+      containerType:
+        type: string
+        enum: [bin, trolley, sharps]
+    compliance:
+      - gdpr: false
+      - cyber_resilience_act: true
+      - restricted_zones: true

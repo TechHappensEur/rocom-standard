@@ -1,0 +1,67 @@
+# FILE: .github/workflows/api-docs.yaml
+name: Standard Docs
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - api/rocom-vda5050-binding.yaml
+      - spec/**/*.yaml
+      - spec/**/*.md
+      - .github/workflows/api-docs.yaml
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build-docs:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install tools
+        run: npm install -g redoc
+
+      - name: Validate OpenAPI binding
+        run: |
+          npx @stoplight/spectral-cli lint api/rocom-vda5050-binding.yaml --verbose || true
+
+      - name: Generate Redoc HTML
+        run: |
+          mkdir -p docs/output
+          cp api/rocom-vda5050-binding.yaml docs/output/
+          cp -r spec/ docs/output/
+          redoc build \
+            --title "Rocom Standard — API Documentation" \
+            --options.expandResponses="200,201" \
+            --options.hideHostname=true \
+            --template docs/redoc-template.html \
+            api/rocom-vda5050-binding.yaml \
+            docs/output/index.html
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: docs/output
+
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    needs: build-docs
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
