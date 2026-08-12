@@ -87,6 +87,7 @@ PYEOF
 
 # Spec parts
 [ -f "$REPO_DIR/spec/part-01-overview/OVERVIEW.md" ]     && convert_md "$REPO_DIR/spec/part-01-overview/OVERVIEW.md"     "part-01-overview.html"     && echo "  part-01-overview.html"
+[ -f "$REPO_DIR/spec/part-01-overview/ARM.md" ]          && convert_md "$REPO_DIR/spec/part-01-overview/ARM.md"          "part-01-arm.html"            && echo "  part-01-arm.html"
 [ -f "$REPO_DIR/spec/part-02-conformance/CONFORMANCE.md" ] && convert_md "$REPO_DIR/spec/part-02-conformance/CONFORMANCE.md" "part-02-conformance.html" && echo "  part-02-conformance.html"
 [ -f "$REPO_DIR/spec/part-05-transport/PROFILE.md" ]       && convert_md "$REPO_DIR/spec/part-05-transport/PROFILE.md"       "part-05-transport.html"       && echo "  part-05-transport.html"
 
