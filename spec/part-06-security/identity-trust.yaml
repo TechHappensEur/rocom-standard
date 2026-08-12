@@ -1,0 +1,168 @@
+# FILE: spec/part-06-security/identity-trust.yaml
+# =====================================================================
+# Rocom — Part 6: Security (Identity & Trust)
+# Status: DRAFT 0.1 (2026-08-12) — Edition 2026a (draft)
+# License: CC-BY 4.0 (see LICENSE-SPEC)
+# Scope: Machine identity (non-human identity, NHI) and trust
+#        requirements for all agents, adapters, providers and
+#        connectors crossing the IT/OT boundary.
+# Companion parts: Part 4 (service contracts), Part 5 (transport),
+#        Part 7 (data governance — depends on this part for
+#        attribution)
+# NOTE:  Parameters marked PENDING-DEPLOYMENT-PROFILE are set per
+#        deployment profile, not by this specification.
+# =====================================================================
+
+module: identity-trust
+part: 6
+version: 0.1-draft
+edition: 2026a-draft
+
+terminology:
+  orchestrator: >
+    The system implementing the orchestration layer of this standard
+    (see Part 1); responsible for task allocation, the agent registry
+    and the audit trail.
+
+principles:
+  - id: it-p-001
+    statement: >
+      Every non-human agent (robot, adapter, provider, connector) MUST
+      hold a verifiable machine identity. No anonymous participants at
+      the IT/OT boundary.
+  - id: it-p-002
+    statement: >
+      Identity lifecycle is bound to agent lifecycle: onboarding of an
+      agent implies identity issuance; offboarding implies revocation.
+  - id: it-p-003
+    statement: >
+      Open standard in the specification, replaceable vendors in
+      implementation. This part references SPIFFE and X.509; it MUST
+      NOT reference any CA vendor, IAM product, or national identity
+      scheme normatively. National schemes enter as deployment
+      profiles.
+  - id: it-p-004
+    statement: >
+      All identity events (issuance, rotation, revocation, failed
+      authentication) MUST be written to the orchestrator's immutable
+      audit trail.
+
+identity_model:
+  id_format: SPIFFE-compatible URI
+  example: "spiffe://<trust-domain>/agent/<agent-type>/<agent-id>"
+  trust_domain: >
+    One trust domain per deployment (hospital or municipality).
+    Federation between trust domains is out of scope for this edition.
+  credential: X.509 SVID (certificate binding the SPIFFE ID)
+  registry_binding: >
+    The orchestrator's agent registry is the authoritative mapping
+    between agent record and SPIFFE ID. An agent without a registry
+    entry MUST NOT be issued a credential.
+
+transport_bindings:
+  - binding: fleet binding (VDA 5050 / MQTT — see Part 5)
+    requirement: mTLS 1.2+; client certificate = agent SVID
+  - binding: orchestrator service interfaces (HTTP)
+    requirement: TLS 1.2+; client authentication per conformance level
+  - binding: availability-provider / task-source contracts (see Part 4)
+    requirement: mTLS between connector and provider endpoint
+
+requirements:
+  # ---- Level 1 — pilot / lab ----------------------------------------
+  - id: it-req-001
+    level: L1
+    statement: Every agent presents a unique X.509 client certificate.
+    verification: conformance test ID-01 (shared certificates rejected)
+  - id: it-req-002
+    level: L1
+    statement: Static certificates permitted; maximum validity 24 months.
+    verification: certificate inspection
+  - id: it-req-003
+    level: L1
+    statement: >
+      Manual revocation supported: a revoked agent is denied within
+      one operational day.
+    verification: conformance test ID-02
+  - id: it-req-004
+    level: L1
+    statement: Identity events logged to the audit trail (it-p-004).
+    verification: audit log inspection
+
+  # ---- Level 2 — production, single site ----------------------------
+  - id: it-req-101
+    level: L2
+    statement: >
+      Certificate rotation without service interruption. Maximum
+      validity: PENDING-DEPLOYMENT-PROFILE (reference value: 90 days).
+    verification: conformance test ID-10
+  - id: it-req-102
+    level: L2
+    statement: >
+      Revocation propagated to all brokers/endpoints within
+      PENDING-DEPLOYMENT-PROFILE (reference value: 15 minutes).
+    verification: conformance test ID-11
+  - id: it-req-103
+    level: L2
+    statement: >
+      Network zone model enforced: agents in the OT zone communicate
+      with IT-zone systems ONLY via the convergence layer (see Part 1).
+      Zone parameters: PENDING-DEPLOYMENT-PROFILE.
+    verification: architecture review + network test ID-12
+  - id: it-req-104
+    level: L2
+    statement: >
+      Certificate profile (key type, EKU, SAN content) conforms to the
+      deployment's CA policy. Profile: PENDING-DEPLOYMENT-PROFILE.
+    verification: certificate inspection
+
+  # ---- Level 3 — production, multi-site / regional ------------------
+  - id: it-req-201
+    level: L3
+    statement: >
+      Fully automatic issuance and rotation (no human in the loop for
+      routine lifecycle); SPIRE or equivalent workload-identity plane.
+    verification: conformance test ID-20
+  - id: it-req-202
+    level: L3
+    statement: >
+      Central revocation authority with signed revocation feed;
+      propagation under 5 minutes.
+    verification: conformance test ID-21
+  - id: it-req-203
+    level: L3
+    statement: >
+      Onboarding/offboarding in the agent registry triggers identity
+      issuance/revocation atomically (no orphan credentials, no
+      credential-less registered agents).
+    verification: conformance test ID-22 (orphan sweep)
+  - id: it-req-204
+    level: L3
+    statement: >
+      Compromise response: a flagged agent is quarantined (denied all
+      brokers/endpoints, task allocation suspended) within 5 minutes.
+    verification: tabletop exercise + conformance test ID-23
+
+deployment_profiles:
+  - profile: dk-region-hovedstaden
+    status: in definition
+    fills: [it-req-101, it-req-102, it-req-103, it-req-104]
+  - profile: no-helseid
+    status: planned
+    note: HelseID system-credential integration (Norway).
+
+regulatory_mapping:
+  - regime: EU CRA
+    relevance: security-by-design for products implementing this standard
+  - regime: IEC 62443
+    relevance: >
+      Conformance levels map informatively (not certifiably) to
+      security levels: L1~SL1, L2~SL2, L3~SL3.
+  - regime: NIS2
+    relevance: hospital operators; zone model (it-req-103) is the hook
+  - regime: Normen (NO)
+    relevance: applies to Norwegian deployments (no-helseid profile)
+
+open_items:
+  - Deployment-profile parameters for dk-region-hovedstaden
+  - Trust-domain federation (multi-region) — deferred to a later edition
+  - Formal IEC 62443 mapping — pending third-party assessment

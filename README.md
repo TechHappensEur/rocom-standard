@@ -14,11 +14,11 @@ robot systems to interoperate with enterprise orchestration layers.
 |------|-------|--------|
 | Part 1 | Overview and Scope | DRAFT |
 | Part 2 | Protocol Bindings (VDA 5050) | DRAFT |
-| Part 3 | Messaging and Transport | — |
-| Part 4 | Availability Provider Contract | — |
-| Part 5 | Capability Registry and Transport Profile | DRAFT |
-| Part 6 | Identity and Trust | — |
-| Part 7 | Data Governance | — |
+| Part 3 | Messaging and Transport | Reserved |
+| Part 4 | Service Contracts (Availability, Task Source) | DRAFT |
+| Part 5 | Transport Profile and Capability Registry | DRAFT |
+| Part 6 | Security (Identity & Trust) | DRAFT |
+| Part 7 | Data Governance | DRAFT |
 
 ## Licensing
 

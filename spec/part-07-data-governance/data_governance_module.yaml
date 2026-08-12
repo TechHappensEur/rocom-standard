@@ -1,0 +1,186 @@
+# =====================================================================
+# Rocom OpenSpec v0.2 — Module: data-governance
+# Status: DRAFT 0.1 (2026-08-11)
+# Author: Rocom project (Egil), drafted with Claude
+# Scope: Data classification, egress control and third-country
+#        transfer governance for all data crossing the IT/OT boundary
+#        or leaving the deployment's trust domain.
+# Companion modules: identity-trust (attribution prerequisite),
+#        fleet-binding (VDA 5050), availability-provider, task-source
+# NOTE:  Parameters marked PENDING-DEPLOYMENT-PROFILE are set per
+#        deployment profile, not by this specification.
+#        input via the Systematic workshop. Do not invent values.
+# =====================================================================
+
+module: data-governance
+version: 0.1-draft
+spec_parent: rocom-openspec-v0.2
+depends_on: [identity-trust]   # attribution requires machine identity
+
+principles:
+  - id: dg-p-001
+    statement: >
+      The convergence layer is the only sanctioned data
+      path across the IT/OT boundary. Direct cloud egress from robots
+      or vendor fleet systems is out of policy. (Extends it-req-103
+      from access control to data flow.)
+  - id: dg-p-002
+    statement: >
+      Data minimization by protocol: the boundary protocol (VDA 5050
+      profile) carries state, orders and operational telemetry only.
+      Sensor payloads (video, audio, point clouds) do not cross the
+      convergence layer. This is a spec principle, not an
+      implementation choice.
+  - id: dg-p-003
+    statement: >
+      The spec provides the policy and verification surface, not
+      physical prevention. Enforcement requires OT-zone network
+      controls (egress deny) and contractual terms. Documentation and
+      marketing MUST state this boundary honestly.
+  - id: dg-p-004
+    statement: >
+      Every declared data flow is attributable: flows are bound to the
+      originating agent's machine identity (identity-trust) and logged
+      to the immutable audit trail.
+
+data_classes:
+  - class: operational-telemetry
+    definition: >
+      State required for orchestration: position, battery, task/order
+      state, error codes, availability.
+    personal_data: no (by design; see dg-req-004)
+  - class: diagnostic
+    definition: >
+      Vendor service data: logs, firmware state, component wear,
+      performance counters.
+    personal_data: normally no; must be verified per vendor
+  - class: sensor-payload
+    definition: >
+      Raw or derived sensor streams: video, audio, lidar/point clouds,
+      images.
+    personal_data: presumed YES in healthcare environments (GDPR
+      art. 9 exposure)
+  - class: personal-data
+    definition: >
+      Any data relating to identified/identifiable persons, including
+      staff scheduling data delivered by availability providers and
+      task metadata naming individuals.
+    personal_data: yes
+
+requirements:
+  # ---- Level 1 — pilot / lab ----------------------------------------
+  - id: dg-req-001
+    level: L1
+    statement: >
+      Every agent has a data profile in the Agent Registry:
+      cap-006): sensors on board, data classes generated, declared
+      destinations, lawful basis per destination.
+    verification: registry inspection; conformance test DG-01
+  - id: dg-req-002
+    level: L1
+    statement: >
+      Every provider/task-source connection declares
+      data_classes_delivered, declared_destinations and lawful_basis
+      (availability_provider_contract data_profile section).
+    verification: contract inspection; conformance test DG-02
+  - id: dg-req-003
+    level: L1
+    statement: >
+      Sensor-payload class does not traverse the convergence layer
+      (dg-p-002). Teleoperation exception per dg-req-020.
+    verification: conformance test DG-03 (payload injection attempt
+      must be rejected)
+  - id: dg-req-004
+    level: L1
+    statement: >
+      Operational telemetry is verified free of personal-data fields
+      (no names, no free-text carrying patient/staff identifiers in
+      order payloads).
+    verification: schema review + conformance test DG-04
+
+  # ---- Level 2 — production, single site ----------------------------
+  - id: dg-req-101
+    level: L2
+    statement: >
+      All vendor telemetry/diagnostic egress is declared, routable and
+      blockable at the convergence layer. Undeclared destinations are
+      denied by default.
+    verification: conformance test DG-10 (undeclared endpoint blocked)
+  - id: dg-req-102
+    level: L2
+    statement: >
+      No third-country transfer of any data class without a documented
+      transfer basis (SCC, adequacy decision, or equivalent) recorded
+      in the registry entry. Approved-destination list: PENDING-DEPLOYMENT-PROFILE.
+    verification: registry inspection; audit sample
+  - id: dg-req-103
+    level: L2
+    statement: >
+      Data flows are attributable to agent identity in the audit
+      trail: which agent, which class, which destination, when.
+      Retention period: PENDING-DEPLOYMENT-PROFILE (reference value: 12 months).
+    verification: conformance test DG-11 (flow → identity lookup)
+  - id: dg-req-104
+    level: L2
+    statement: >
+      The registry can export an Article 30-compatible record of
+      processing (per-agent and per-connection view) on demand.
+    verification: export test DG-12; DPO review of format
+
+  # ---- Level 3 — production, multi-site / regional ------------------
+  - id: dg-req-201
+    level: L3
+    statement: >
+      Egress policy is enforced technically at the convergence layer
+      (allow-list per agent identity and data class), not only
+      declared. Policy changes are versioned and approved (two-person
+      rule: PENDING-DEPLOYMENT-PROFILE).
+    verification: conformance test DG-20
+  - id: dg-req-202
+    level: L3
+    statement: >
+      Continuous verification: declared data profiles are reconciled
+      against observed flows; deviations raise governance events
+      within 24 hours.
+    verification: conformance test DG-21 (planted deviation detected)
+  - id: dg-req-203
+    level: L3
+    statement: >
+      Third-country transfer register is auditable per art. 30 with
+      per-transfer lawful-basis reference, exportable to regional
+      compliance systems. Format: PENDING-DEPLOYMENT-PROFILE.
+    verification: export test DG-22
+
+  # ---- Teleoperation exception (all levels where used) ---------------
+  - id: dg-req-020
+    level: L1+
+    statement: >
+      Teleoperation/remote assistance MAY carry sensor payloads across
+      the boundary ONLY as a declared exception: (a) registered in the
+      agent's data profile, (b) session-bound and time-limited,
+      (c) initiated by an identified human operator, (d) logged
+      start/stop with operator identity, (e) terminated automatically
+      at session end. Standing sensor streams are never an exception.
+    verification: conformance test DG-30 (session lifecycle);
+      audit inspection
+
+regulatory_mapping:
+  - regime: GDPR (incl. art. 9, art. 30)
+    relevance: data classes, lawful basis, records of processing
+  - regime: Schrems II / third-country transfers
+    relevance: dg-req-102/203 — transfer basis per destination
+  - regime: EHDS
+    relevance: >
+      European data sovereignty alignment; convergence layer keeps
+      health-adjacent data in-region by default
+  - regime: NIS2
+    relevance: zone model + egress control at critical-infrastructure
+      operators
+  - regime: Normen (NO)
+    relevance: applies when Norwegian deployments activate; profile
+      to be defined with NHN (on hold per 2026-08-11 decision)
+
+open_items:
+  - "PENDING-DEPLOYMENT-PROFILE parameters (approved destinations, retention, two-person rule, export format)"
+  - "Vendor contract clause templates (egress declaration warranty) — commercial work item, outside spec scope"
+  - "Interaction with certification: DG conformance tests enter the Rocom Certified test set from L2"

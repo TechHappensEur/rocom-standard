@@ -1,0 +1,318 @@
+# FILE: availability_provider_contract.yaml
+# Availability Provider Contract — Rocom v0.1
+# Defines the interface any workforce data source must implement
+# to feed agent availability into the orchestrator cross-allocation engine.
+#
+# Implementations:
+#   - rocom-core/src/providers/columna_flow.rs  (Columna Flow API)
+#   - rocom-core/src/providers/gat.rs            (GAT/MinGat — Norwegian municipalities)
+#   - rocom-core/src/providers/workday.rs        (Workday enterprise HR)
+#   - rocom-core/src/providers/rocom_fleet.rs    (Rocom robot fleet — always present)
+
+contract:
+  name: "Availability Provider Interface"
+  version: "0.1.0"
+  description: >-
+    Source-agnostic contract for feeding human and robot agent availability
+    into the orchestrator cross-allocation engine. Any workforce system (Columna Flow,
+    GAT, Workday, Rocom fleet) implements this contract to become an availability
+    provider. The engine normalizes all sources to the unified Agent model.
+
+  required_fields:
+    # --- Identity ---
+    - name: agent_id
+      type: "String (UUID or system-native ID)"
+      description: "Unique identifier for the agent. Must be stable across availability updates."
+      example: '"staff-42" eller "robot-EVE-001"'
+
+    - name: agent_type
+      type: "Enum { human, robot, cockpit }"
+      description: "Agent category. Determines which allocation rules apply."
+      example: "human"
+
+    - name: provider_id
+      type: "String"
+      description: "Identifier of the provider implementation supplying this data."
+      example: '"columna-flow-rigshospitalet" eller "gat-oslo-kommune"'
+
+    # --- Capabilities ---
+    - name: capabilities
+      type: "Array[Capability]"
+      description: "What this agent can do. Used for task-to-agent matching."
+      schema:
+        Capability:
+          capability_id: "String"
+          name: "String"
+          level: "Enum { basic, intermediate, expert }"
+          constraints: "Optional[String]"
+      example: >-
+        [{ capability_id: "transport", name: "Transport items between wards", level: "basic" },
+         { capability_id: "patient_assist", name: "Patient assistance", level: "expert",
+           constraints: "requires_certification_nurse" }]
+
+    # --- Availability ---
+    - name: availability_status
+      type: "Enum { available, busy, unavailable, scheduled_absent }"
+      description: "Current availability for task allocation."
+      example: "available"
+
+    - name: availability_windows
+      type: "Array[TimeWindow]"
+      description: "Scheduled availability periods for planning. Empty array = on-demand."
+      schema:
+        TimeWindow:
+          start: "ISO 8601 datetime"
+          end: "ISO 8601 datetime"
+          status: "Enum { available, unavailable }"
+          recurrence: "Optional[String] — RRULE or 'none'"
+      example: >-
+        [{ start: "2026-08-11T06:00:00+02:00", end: "2026-08-11T14:00:00+02:00",
+           status: "available", recurrence: "FREQ=DAILY;BYDAY=MO,TU,WE,TH,FR" }]
+
+    - name: current_location
+      type: "Optional[Location]"
+      schema:
+        Location:
+          ward_or_zone: "String"
+          coordinates: "Optional[{ x: Float, y: Float, map_id: String }]"
+      example: { ward_or_zone: "Ward 3B", coordinates: { x: 12.5, y: 8.3, map_id: "map-floors1-3" } }
+
+    # --- Cost Model ---
+    - name: cost_model
+      type: "CostModel"
+      description: "How the allocation engine prices using this agent for a task."
+      schema:
+        CostModel:
+          base_cost_per_minute: "Float (in EUR, normalized)"
+          overtime_multiplier: "Float (applied outside availability_windows)"
+          min_engagement_minutes: "Float (minimum dispatch duration)"
+          constraints: "Optional[Array[String]] — collective agreement rules, skill requirements"
+      example: >-
+        { base_cost_per_minute: 0.85, overtime_multiplier: 1.5,
+          min_engagement_minutes: 15,
+          constraints: ["collective_agreement_section_4_2", "max_8h_daily_transport"] }
+
+    # --- Compliance ---
+    - name: compliance_flags
+      type: "Array[String]"
+      description: "Regulatory or collective agreement flags affecting allocation."
+      example: >-
+        ["requires_union_consultation_for_robot_replacement",
+         "gdpr_workforce_data_source_consent",
+         "eu_cra_class_b_robot"]
+
+    # --- Data Profile (fd-005 cap-006, fd-010) ---
+    # Minimal declaration: what data classes this agent delivers, where, and on what basis.
+    # Full sensor inventory belongs in the data-governance module (fd-010), not the provider contract.
+    # Required for robots; optional for human agents.
+    - name: data_profile
+      type: "DataProfile (optional for humans, required for robots)"
+      description: "Minimal data governance declaration per agent: data classes delivered, declared destinations, lawful transfer basis. Enables real-time Art. 30 register from the agent registry. Full sensor inventory managed by data-governance module (fd-010)."
+      schema:
+        DataProfile:
+          data_classes_delivered: "Array[String] — from data class taxonomy (fd-010 cap-001): operational_telemetry, diagnostic, sensor_payload, personal_data"
+          declared_destinations: "Array[Destination]"
+          Destination:
+            destination_id: "String"
+            system_name: "String"
+            location: "String (e.g., 'EU', 'US-East', 'hospital-internal')"
+            lawful_basis: "Enum { adequacy, sccs, bcrs, explicit_consent, legal_obligation, none }"
+            description: "Optional[String]"
+          gdpr_article: "Enum { 6_1_f, 6_1_a, 9_2_h, 9_2_a, none } — processing basis for Art. 9 data"
+      example: >-
+        { data_classes_delivered: ["operational_telemetry", "diagnostic", "sensor_payload"],
+           declared_destinations: [
+             { destination_id: "rocom-orchestrator-internal", system_name: "Agent Registry",
+               location: "hospital-internal", lawful_basis: "legal_obligation" },
+             { destination_id: "vendor-cloud-eu", system_name: "Vendor Fleet Telemetry",
+               location: "EU", lawful_basis: "sccs", description: "Battery diagnostics only" }
+           ],
+           gdpr_article: "9_2_h" }
+
+  events:
+    # Push model: provider emits these events to the orchestrator
+    - name: agent.registered
+      description: "New agent becomes known to the system."
+      payload: "All required_fields"
+
+    - name: agent.availability_changed
+      description: "Agent availability status or windows changed."
+      payload:
+        - agent_id
+        - availability_status
+        - availability_windows
+        - current_location
+        - timestamp
+
+    - name: agent.capabilities_updated
+      description: "Agent capability profile changed (training, firmware update, reassignment)."
+      payload:
+        - agent_id
+        - capabilities
+        - timestamp
+
+    - name: agent.deregistered
+      description: "Agent removed from the system (offboarding, decommissioning)."
+      payload:
+        - agent_id
+        - reason
+        - timestamp
+
+  polling_alternative:
+    description: "Providers that cannot push may poll via REST endpoint."
+    endpoint: "GET /api/v1/agents/{agent_id}/availability"
+    response: "All required_fields for the requested agent"
+    rate_limit: "10 req/min per provider"
+
+  conformance_levels:
+    - level: "bronze"
+      name: "Basic Availability"
+      requirement: >-
+        Provider supplies agent_id, agent_type, availability_status, and cost_model.
+        Sufficient for on-demand allocation with no advance planning.
+      example_implementations: ["Simple robot fleet adapter", "Manual availability form"]
+
+    - level: "silver"
+      name: "Scheduled + Capability-Aware"
+      requirement: >-
+        Bronze + availability_windows (with recurrence) and capabilities.
+        Enables shift planning and capability-based task matching.
+      example_implementations: ["Columna Flow Task Management", "GAT/MinGat", "Workday"]
+
+    - level: "gold"
+      name: "Full Cross-Allocation Ready"
+      requirement: >-
+        Silver + current_location, compliance_flags, real-time push events.
+        Enables fully automated cross-allocation with compliance verification.
+      example_implementations: ["Columna Flow + Rocom adapter", "GAT + Rocom fleet integration"]
+
+# ============================================================
+# AsyncAPI Skisse — Event-driven provider interface
+# ============================================================
+asyncapi_sketch: |
+  asyncapi: 3.0.0
+  info:
+    title: Rocom Availability Provider Interface
+    version: 0.1.0
+    description: >-
+      Event-driven contract for feeding agent availability data into the orchestrator
+      cross-allocation engine. Any workforce system implements this to become
+      an availability provider.
+
+  channels:
+    availability.events:
+      description: "Agent availability events — push model"
+      messages:
+        AgentRegistered:
+          name: AgentRegistered
+          payload:
+            type: object
+            required: [event_type, agent_id, agent_type, provider_id, capabilities, availability_status, cost_model, compliance_flags]
+            properties:
+              event_type:
+                type: string
+                const: agent.registered
+              agent_id:
+                type: string
+                format: uuid
+              agent_type:
+                type: string
+                enum: [human, robot, cockpit]
+              provider_id:
+                type: string
+              capabilities:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    capability_id: { type: string }
+                    name: { type: string }
+                    level: { type: string, enum: [basic, intermediate, expert] }
+              availability_status:
+                type: string
+                enum: [available, busy, unavailable, scheduled_absent]
+              availability_windows:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    start: { type: string, format: date-time }
+                    end: { type: string, format: date-time }
+                    status: { type: string, enum: [available, unavailable] }
+              cost_model:
+                type: object
+                properties:
+                  base_cost_per_minute: { type: number }
+                  overtime_multiplier: { type: number }
+                  min_engagement_minutes: { type: number }
+              compliance_flags:
+                type: array
+                items: { type: string }
+              timestamp:
+                type: string
+                format: date-time
+
+        AvailabilityChanged:
+          name: AvailabilityChanged
+          payload:
+            type: object
+            required: [event_type, agent_id, availability_status, timestamp]
+            properties:
+              event_type:
+                type: string
+                const: agent.availability_changed
+              agent_id: { type: string, format: uuid }
+              availability_status:
+                type: string
+                enum: [available, busy, unavailable, scheduled_absent]
+              availability_windows:
+                type: array
+              current_location:
+                type: object
+                properties:
+                  ward_or_zone: { type: string }
+                  coordinates:
+                    type: object
+                    properties:
+                      x: { type: number }
+                      y: { type: number }
+                      map_id: { type: string }
+              timestamp: { type: string, format: date-time }
+
+        CapabilitiesUpdated:
+          name: CapabilitiesUpdated
+          payload:
+            type: object
+            required: [event_type, agent_id, capabilities, timestamp]
+            properties:
+              event_type:
+                type: string
+                const: agent.capabilities_updated
+              agent_id: { type: string, format: uuid }
+              capabilities:
+                type: array
+              timestamp: { type: string, format: date-time }
+
+        AgentDeregistered:
+          name: AgentDeregistered
+          payload:
+            type: object
+            required: [event_type, agent_id, reason, timestamp]
+            properties:
+              event_type:
+                type: string
+                const: agent.deregistered
+              agent_id: { type: string, format: uuid }
+              reason: { type: string }
+              timestamp: { type: string, format: date-time }
+
+  operations:
+    publishAvailability:
+      action: send
+      channel:
+        $ref: '#/channels/availability.events'
+      messages:
+        - $ref: '#/channels/availability.events/messages/AgentRegistered'
+        - $ref: '#/channels/availability.events/messages/AvailabilityChanged'
+        - $ref: '#/channels/availability.events/messages/CapabilitiesUpdated'
+        - $ref: '#/channels/availability.events/messages/AgentDeregistered'
