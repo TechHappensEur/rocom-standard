@@ -38,35 +38,46 @@ all L1 requirements.
 
 ```
           +----------------------------------+
-          |        Ring 5: Governance        |
-          |  (data governance, audit, CRA)   |
+          |        Ring 7: Data Governance   |
+          |  (data classification, egress)   |
           +----------------------------------+
                     |
           +----------------------------------+
-          |      Ring 4: Identity & Trust    |
-          |  (NHI, X.509, SPIFFE, mTLS)     |
+          |      Ring 6: Security            |
+          |  (identity, trust, mTLS)         |
           +----------------------------------+
                     |
           +----------------------------------+
-          |   Ring 3: Service Contracts      |
-          |  (availability, task-source, ...) |
+          |    Ring 5: Transport Profile     |
+          |  (VDA 5050 binding, capabilities)|
           +----------------------------------+
                     |
           +----------------------------------+
-          |     Ring 2: Transport Profile    |
-          |  (VDA 5050 binding, MQTT, ...)   |
+          |    Ring 4: Service Contracts     |
+          |  (availability, task-source)     |
           +----------------------------------+
                     |
           +----------------------------------+
-          |      Ring 1: Fleet Binding       |
-          |  (VDA 5050 core, factsheet, ...) |
+          |    Ring 3: Information Model     |
+          |  (agent, task, data profile)     |
+          +----------------------------------+
+                    |
+          +----------------------------------+
+          |      Ring 2: Conformance         |
+          |  (L1–L3 levels, statement)       |
+          +----------------------------------+
+                    |
+          +----------------------------------+
+          |     Ring 1: Overview & Scope     |
+          |  (architecture, terminology)     |
           +----------------------------------+
                     |
               [ Robot Fleet / OT Zone ]
 ```
 
-Each ring maps to a Part of this specification. Rings are dependency-ordered:
-Ring N requires Rings 1 through N-1.
+Each ring maps to a Part of this specification. Parts are dependency-ordered:
+Part N requires Parts 1 through N-1. Part 3 (Information Model) is a
+foundation — Parts 4 through 7 reference its types verbatim.
 
 # 4. IT/OT Zone Model
 
@@ -97,7 +108,7 @@ The specification defines four contract planes:
 
 | Plane | Role | Specification Part |
 |-------|------|--------------------|
-| 1 — BMS Infrastructure | Building Management Systems (access control, elevators) | Part 2 |
+| 1 — BMS Infrastructure | Building Management Systems (access control, elevators) | Part 5 |
 | 2 — Robot Vendor | Rocom-conformant robot platforms | Part 5 |
 | 3 — Availability Provider | HR/turnus systems providing agent availability | Part 4 |
 | 4 — Task Source | Enterprise systems generating tasks | Part 4 |
@@ -107,19 +118,16 @@ The specification defines four contract planes:
 | Part | Title | Scope |
 |------|-------|-------|
 | 1 | Overview and Scope | Architecture, terminology, zone model |
-| 2 | Protocol Bindings | VDA 5050 binding with Rocom extensions |
-| 3 | Messaging and Transport | (reserved) |
+| 2 | Conformance | L1–L3 levels, conformance statement template |
+| 3 | Information Model | Agent, task, capability, data profile types |
 | 4 | Service Contracts | Availability provider, task source interfaces |
-| 5 | Transport Profile | Capability registry, healthcare extensions |
+| 5 | Transport Profile & Bindings | VDA 5050 binding, capability registry |
 | 6 | Security | Machine identity, trust, mTLS |
 | 7 | Data Governance | Data classification, egress control, Art. 30 |
 
-# 7. Conformance
+# 7. Cross-References
 
-A system claiming Rocom conformance MUST declare its conformance level
-(L1, L2, or L3) per Part, and satisfy all requirements at that level
-and below. Partial conformance within a Part is permitted; the system
-MUST document which requirements are not met.
-
-Formal certification is defined separately (see the Rocom Certification
-Program).
+Parts 4 through 7 reference the types defined in Part 3 (Information
+Model) verbatim. Conformance is declared per Part at L1, L2, or L3
+(see Part 2). Formal certification is defined by the Rocom Certification
+Program (see GOVERNANCE.md).

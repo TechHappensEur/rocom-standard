@@ -1,0 +1,250 @@
+# FILE: spec/part-03-information-model/INFORMATION-MODEL.yaml
+# =====================================================================
+# Rocom — Part 3: Information Model
+# Status: DRAFT 0.1 (2026-08-12) — Edition 2026a (draft)
+# License: CC-BY 4.0 (see LICENSE-SPEC)
+# Scope: Core data types referenced by Parts 4, 5, 6, 7.
+#        Contracts and profiles MUST use these types verbatim.
+# =====================================================================
+
+module: information-model
+part: 3
+version: 0.1-draft
+edition: 2026a-draft
+
+# ====================================================================
+# Agent — the canonical agent record (Part 4, Part 5)
+# ====================================================================
+agent:
+  description: >
+    Any entity allocatable to tasks: human staff, robot, or
+    human-in-the-loop operator station.
+  required_fields:
+    - agent_id
+    - agent_type
+    - availability_status
+  fields:
+    agent_id:
+      type: string
+      description: Canonical identifier. Stable across availability updates.
+      example: "robot-EVE-001"
+    agent_type:
+      type: string
+      enum: [human, robot, cockpit]
+      description: Agent category. Determines applicable allocation rules.
+    hr_ref:
+      type: string
+      description: Reference to HR system record (employee ID or serial number).
+      required: true
+    provider_id:
+      type: string
+      description: Source provider that registered this agent.
+      example: "columna-flow-rigshospitalet"
+    availability_status:
+      type: string
+      enum: [available, busy, unavailable, scheduled_absent]
+    current_location:
+      type: location
+      required: false
+
+# ====================================================================
+# Capability (Part 5)
+# ====================================================================
+capability:
+  description: A structured declaration of what an agent can do.
+  fields:
+    capability_id:
+      type: string
+      description: Key matching an entry in the capability registry (Part 5).
+      example: "transport.meal"
+    name:
+      type: string
+      example: "Meal transport between wards"
+    level:
+      type: string
+      enum: [basic, intermediate, expert]
+    certified:
+      type: boolean
+      description: Whether the capability has passed certification testing.
+      default: false
+    constraints:
+      type: array
+      items: string
+      required: false
+
+# ====================================================================
+# Time Window (Part 4)
+# ====================================================================
+time_window:
+  description: A scheduled availability period.
+  fields:
+    start:
+      type: string
+      format: date-time
+    end:
+      type: string
+      format: date-time
+    status:
+      type: string
+      enum: [available, unavailable]
+    recurrence:
+      type: string
+      description: "RRULE or 'none'"
+      required: false
+
+# ====================================================================
+# Location (Part 4, Part 5)
+# ====================================================================
+location:
+  description: Physical position of an agent within a deployment.
+  fields:
+    ward_or_zone:
+      type: string
+      example: "Ward 3B"
+    coordinates:
+      type: object
+      required: false
+      properties:
+        x: { type: number }
+        y: { type: number }
+        map_id: { type: string }
+
+# ====================================================================
+# Cost Model (Part 4)
+# ====================================================================
+cost_model:
+  description: How the orchestrator prices using an agent for a task.
+  fields:
+    base_cost_per_minute:
+      type: number
+      description: "Cost in EUR, normalized."
+    overtime_multiplier:
+      type: number
+      description: Applied outside availability windows.
+    min_engagement_minutes:
+      type: number
+    constraints:
+      type: array
+      items: string
+      required: false
+      description: "Collective agreement rules, skill requirements."
+
+# ====================================================================
+# Task (Part 4)
+# ====================================================================
+task:
+  description: A unit of work to be allocated to an agent.
+  required_fields:
+    - task_id
+    - description
+    - required_capability
+    - priority
+  fields:
+    task_id:
+      type: string
+      format: uuid
+    description:
+      type: string
+    required_capability:
+      type: string
+      description: Capability key matching the capability registry.
+    priority:
+      type: integer
+      description: "Numeric priority (higher = more urgent)."
+    status:
+      type: string
+      enum: [pending, assigned, in_progress, completed, cancelled]
+      default: pending
+    assigned_agent_id:
+      type: string
+      required: false
+    zone:
+      type: string
+      required: false
+    constraints:
+      type: array
+      items: string
+      required: false
+
+# ====================================================================
+# Data Profile (Part 7)
+# ====================================================================
+data_profile:
+  description: >
+    What data classes an agent delivers, where, and on what basis.
+    Required for robots; optional for human agents.
+  required_fields:
+    - data_classes_delivered
+    - declared_destinations
+  fields:
+    data_classes_delivered:
+      type: array
+      items: string
+      description: "From data class taxonomy (Part 7): operational_telemetry, diagnostic, sensor_payload, personal_data"
+    declared_destinations:
+      type: array
+      items: destination
+    gdpr_article:
+      type: string
+      enum: [6_1_f, 6_1_a, 9_2_h, 9_2_a, none]
+      description: "Processing basis for Art. 9 data."
+      default: none
+
+# ====================================================================
+# Declared Destination (Part 7)
+# ====================================================================
+destination:
+  description: Where data is transferred and under what basis.
+  required_fields:
+    - destination_id
+    - system_name
+    - location
+    - lawful_basis
+  fields:
+    destination_id:
+      type: string
+    system_name:
+      type: string
+    location:
+      type: string
+      example: "hospital-internal"
+    lawful_basis:
+      type: string
+      enum: [adequacy, sccs, bcrs, explicit_consent, legal_obligation, none]
+    description:
+      type: string
+      required: false
+
+# ====================================================================
+# Compliance Event (Part 5)
+# ====================================================================
+compliance_event:
+  description: Published on zone transitions (Part 5, rocom/v0/compliance/event).
+  required_fields:
+    - event_id
+    - task_id
+    - agent_id
+    - zone
+    - event_type
+  fields:
+    event_id:
+      type: string
+      format: uuid
+    task_id:
+      type: string
+      format: uuid
+    agent_id:
+      type: string
+      format: uuid
+    zone:
+      type: string
+    event_type:
+      type: string
+      enum: [zone_entry, zone_exit, restricted_zone_check, chain_of_custody]
+    compliance_status:
+      type: string
+      enum: [passed, failed, exception]
+    audit_correlation_id:
+      type: string
+      format: uuid
+      description: Links to the orchestrator audit trail.

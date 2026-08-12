@@ -13,11 +13,11 @@ robot systems to interoperate with enterprise orchestration layers.
 | Part | Title | Status |
 |------|-------|--------|
 | Part 1 | Overview and Scope | DRAFT |
-| Part 2 | Protocol Bindings (VDA 5050) | DRAFT |
-| Part 3 | Messaging and Transport | Reserved |
-| Part 4 | Service Contracts (Availability, Task Source) | DRAFT |
-| Part 5 | Transport Profile and Capability Registry | DRAFT |
-| Part 6 | Security (Identity & Trust) | DRAFT |
+| Part 2 | Conformance | DRAFT |
+| Part 3 | Information Model | DRAFT |
+| Part 4 | Service Contracts | DRAFT |
+| Part 5 | Transport Profile & Bindings | DRAFT |
+| Part 6 | Security | DRAFT |
 | Part 7 | Data Governance | DRAFT |
 
 ## Licensing
@@ -29,12 +29,10 @@ See [LICENSE-SPEC](LICENSE-SPEC) and [LICENSE-CODE](LICENSE-CODE).
 
 ## Contributing
 
-See [CONTRIBUTING.md](CONTRIBUTING.md) for edition, supplement, and
-conformance profile conventions.
+See [CONTRIBUTING.md](CONTRIBUTING.md) for the Edition / Supplement /
+Correction Proposal process.
 
 ## Governance
 
-The Rocom specification is maintained by [Tech Happens Europe ApS].
+The Rocom specification is maintained by Tech Happens Europe ApS.
 See [GOVERNANCE.md](GOVERNANCE.md) for the stewardship model.
-
-[tech happens europe aps]: https://techhappens.eu
