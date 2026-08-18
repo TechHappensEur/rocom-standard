@@ -8,7 +8,7 @@ on:
       - api/rocom-vda5050-binding.yaml
       - spec/**/*.yaml
       - spec/**/*.md
-      - docs/**
+      - build/**
       - .github/workflows/api-docs.yaml
 
 permissions:
@@ -29,13 +29,8 @@ jobs:
       - name: Configure Pages
         uses: actions/configure-pages@v5
 
-      - name: Set up Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-
-      - name: Install tools
-        run: npm install -g @asyncapi/openapi-schema-parser
+      - name: Install pandoc
+        run: sudo apt-get update && sudo apt-get install -y pandoc
 
       - name: Validate AsyncAPI binding
         run: |
@@ -49,30 +44,13 @@ jobs:
           print(f'AsyncAPI {doc["asyncapi"]}: {len(doc["channels"])} channels valid')
           PYEOF
 
-      - name: Generate HTML docs
-        run: |
-          mkdir -p docs-output
-          cp api/rocom-vda5050-binding.yaml docs-output/
-          cp -r spec/ docs-output/
-          cat > docs-output/index.html << 'HTMLEOF'
-          <!DOCTYPE html>
-          <html>
-          <head><title>Rocom Standard — API Documentation</title>
-          <style>body{font-family:monospace;max-width:900px;margin:2em auto;padding:0 1em}pre{white-space:pre-wrap}</style>
-          </head>
-          <body>
-          <h1>Rocom VDA 5050 Binding</h1>
-          <p>AsyncAPI 3.0.0 binding specification.</p>
-          <pre id="spec"></pre>
-          <script>fetch('rocom-vda5050-binding.yaml').then(r=>r.text()).then(t=>document.getElementById('spec').textContent=t)</script>
-          </body>
-          </html>
-          HTMLEOF
+      - name: Build site
+        run: bash build/build.sh _site
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: docs-output
+          path: _site
 
   deploy:
     environment:
