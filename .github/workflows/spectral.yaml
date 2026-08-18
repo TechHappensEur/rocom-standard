@@ -6,6 +6,7 @@ on:
     branches: [main]
     paths:
       - 'api/*.yaml'
+      - 'spec/**/*.yaml'
       - '.spectral*.yaml'
       - '.github/workflows/spectral.yaml'
   pull_request:
@@ -18,12 +19,24 @@ permissions:
   pull-requests: write
 
 jobs:
-  lint:
+  lint-asyncapi:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Lint AsyncAPI binding
-        uses: stoplightio/spectral-action@latest
+      - uses: actions/setup-node@v4
         with:
-          file_glob: "api/*.yaml"
-          spectral_ruleset: .spectral-asyncapi.yaml
+          node-version: 20
+      - run: npm install -g @stoplight/spectral-cli @stoplight/spectral-rulesets
+      - name: Lint AsyncAPI binding
+        run: npx @stoplight/spectral-cli lint "api/*.yaml" --ruleset .spectral-asyncapi.yaml --verbose
+
+  lint-openapi:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - run: npm install -g @stoplight/spectral-cli @stoplight/spectral-rulesets
+      - name: Lint OpenAPI specs
+        run: npx @stoplight/spectral-cli lint "spec/**/*.yaml" --ruleset .spectral.yaml --verbose

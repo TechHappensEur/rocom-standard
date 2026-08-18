@@ -112,7 +112,7 @@ channels:
             sequence:
               type: array
               items:
-                $ref: "#/schemas/NavigationNode"
+                $ref: "#/components/schemas/NavigationNode"
             timestamp:
               type: string
               format: date-time
@@ -246,16 +246,17 @@ channels:
 
 defaultContentType: application/json
 
-schemas:
-  NavigationNode:
-    type: object
-    required: [id, type]
-    properties:
-      id:
-        type: string
-      type:
-        type: string
-        enum: [NODE, TASK]
-      payload:
-        type: object
-        additionalProperties: true
+components:
+  schemas:
+    NavigationNode:
+      type: object
+      required: [id, type]
+      properties:
+        id:
+          type: string
+        type:
+          type: string
+          enum: [NODE, TASK]
+        payload:
+          type: object
+          additionalProperties: true
