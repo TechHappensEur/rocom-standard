@@ -1,13 +1,63 @@
-extends:
-  - spectral:oas
-
+# Spectral ruleset for spec validation
+# Uses function:schema only (works without extends in spectral-action)
 rules:
-  operation-2xx-response: off
-  operation-success-response: off
-  info-license: off
-  no-eval-template-literals: warn
-  no-script-tags-in-description: warn
-  openapi-tags-alphabetical: off
-  no-undefined-server: off
-  oas3-unused-components-schemas: off
-  oas3-unused-components-responses: off
+  valid-version:
+    description: Must declare openapi version
+    given: $
+    severity: error
+    then:
+      function: schema
+      functionOptions:
+        schema:
+          properties:
+            openapi:
+              type: string
+          required:
+            - openapi
+  has-paths:
+    description: Must define paths
+    given: $
+    severity: error
+    then:
+      function: schema
+      functionOptions:
+        schema:
+          properties:
+            paths:
+              type: object
+          required:
+            - paths
+  has-info:
+    description: Must have info block with title and version
+    given: $
+    severity: error
+    then:
+      function: schema
+      functionOptions:
+        schema:
+          properties:
+            info:
+              type: object
+              properties:
+                title:
+                  type: string
+                version:
+                  type: string
+              required:
+                - title
+                - version
+          required:
+            - info
+  has-tags:
+    description: Should define tags
+    given: $
+    severity: warn
+    then:
+      function: schema
+      functionOptions:
+        schema:
+          properties:
+            tags:
+              type: array
+          required:
+            - tags

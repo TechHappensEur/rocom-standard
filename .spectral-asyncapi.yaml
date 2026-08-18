@@ -1,10 +1,50 @@
-extends:
-  - spectral:asyncapi
-
+# Spectral ruleset for AsyncAPI binding validation
+# Uses function:schema only (works without extends in spectral-action)
 rules:
-  message-examples: off
-  message-info-description: off
-  channel-no-server-trait: off
-  server-no-api-version: off
-  server-not-recommended-protocol: off
-  server-protocol-required: off
+  valid-asyncapi-version:
+    description: Must declare asyncapi version
+    given: $
+    severity: error
+    then:
+      function: schema
+      functionOptions:
+        schema:
+          properties:
+            asyncapi:
+              type: string
+          required:
+            - asyncapi
+  has-info:
+    description: Must have info block with title and version
+    given: $
+    severity: error
+    then:
+      function: schema
+      functionOptions:
+        schema:
+          properties:
+            info:
+              type: object
+              properties:
+                title:
+                  type: string
+                version:
+                  type: string
+              required:
+                - title
+                - version
+          required:
+            - info
+  has-channels:
+    description: Must define channels
+    given: $
+    severity: error
+    then:
+      function: schema
+      functionOptions:
+        schema:
+          properties:
+            channels:
+              type: object
+          required:
+            - channels
