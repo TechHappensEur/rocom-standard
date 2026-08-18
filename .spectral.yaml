@@ -1,30 +1,13 @@
+extends:
+  - spectral:oas
+
 rules:
-  has-version:
-    description: API spec must declare a version field (asyncapi or openapi)
-    given: $
-    severity: error
-    then:
-      function: schema
-      functionOptions:
-        schema:
-          anyOf:
-            - required: [asyncapi]
-            - required: [openapi]
-  has-info:
-    description: API spec must have an info block with title
-    given: $
-    severity: error
-    then:
-      function: schema
-      functionOptions:
-        schema:
-          properties:
-            info:
-              type: object
-              properties:
-                title:
-                  type: string
-              required:
-                - title
-          required:
-            - info
+  operation-2xx-response: off
+  operation-success-response: off
+  info-license: off
+  no-eval-template-literals: warn
+  no-script-tags-in-description: warn
+  openapi-tags-alphabetical: off
+  no-undefined-server: off
+  oas3-unused-components-schemas: off
+  oas3-unused-components-responses: off

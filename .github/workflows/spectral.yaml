@@ -7,7 +7,7 @@ on:
     paths:
       - 'api/*.yaml'
       - 'spec/**/*.yaml'
-      - '.spectral.yaml'
+      - '.spectral*.yaml'
       - '.github/workflows/spectral.yaml'
   pull_request:
     branches: [main]
@@ -19,12 +19,22 @@ permissions:
   pull-requests: write
 
 jobs:
-  lint:
+  lint-oas:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - name: Lint OpenAPI specs
         uses: stoplightio/spectral-action@latest
         with:
-          file_glob: "api/*.yaml"
+          file_glob: "spec/part-*/**.yaml"
           spectral_ruleset: .spectral.yaml
+
+  lint-asyncapi:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Lint AsyncAPI binding
+        uses: stoplightio/spectral-action@latest
+        with:
+          file_glob: "api/*.yaml"
+          spectral_ruleset: .spectral-asyncapi.yaml

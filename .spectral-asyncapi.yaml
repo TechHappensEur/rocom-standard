@@ -1,0 +1,10 @@
+extends:
+  - spectral:asyncapi
+
+rules:
+  message-examples: off
+  message-info-description: off
+  channel-no-server-trait: off
+  server-no-api-version: off
+  server-not-recommended-protocol: off
+  server-protocol-required: off
