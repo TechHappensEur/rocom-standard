@@ -1,0 +1,15 @@
+extends:
+  - recommended
+
+rules:
+  operation-2xx-response: off
+  operation-success-response: off
+  info-license: off
+  no-eval-template-literals: warn
+  no-script-tags-in-description: warn
+  openapi-tags-alphabetical: off
+  openapi-tags-uniqueness: error
+  path-declaration-must-exist: error
+  path-parameters: error
+  no-ambiguous-paths: error
+  no-undefined-server: off

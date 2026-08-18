@@ -290,6 +290,9 @@ for sp in supps:
     if status and lic:
         badge = 'PROPOSAL'
         cls = 'badge-draft'
+        if any(w in status.lower() for w in ('final', 'published')):
+            badge = 'FINAL'
+            cls = 'badge-final'
         meta = (
             f"<div class='doc-meta'>"
             f"<strong>Document:</strong> {title} &nbsp;"

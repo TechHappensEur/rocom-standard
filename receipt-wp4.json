@@ -1,0 +1,12 @@
+{
+  "project": "Rocom Conformance",
+  "task": "WP4: Publish Annex A (Engineering Practice Notes)",
+  "commit_on_origin": "https://github.com/TechHappensEur/rocom-standard/commit/e257ab5",
+  "url_ok": "https://rocom.org/supplement-Sup-002-Annex-A-Engineering-Practice.html",
+  "file_exists": "spec/supplements/Sup-002-Annex-A-Engineering-Practice.md",
+  "verification": {
+    "file_on_disk": true,
+    "url_returns_200": true,
+    "cognitive_debt_found": true
+  }
+}
