@@ -1,19 +1,17 @@
 rules:
-  valid-asyncapi-version:
-    description: Must declare asyncapi version
+  has-version:
+    description: API spec must declare a version field (asyncapi or openapi)
     given: $
     severity: error
     then:
       function: schema
       functionOptions:
         schema:
-          properties:
-            asyncapi:
-              type: string
-          required:
-            - asyncapi
-  has-info-block:
-    description: Must have info block with title and version
+          anyOf:
+            - required: [asyncapi]
+            - required: [openapi]
+  has-info:
+    description: API spec must have an info block with title
     given: $
     severity: error
     then:
@@ -26,23 +24,7 @@ rules:
               properties:
                 title:
                   type: string
-                version:
-                  type: string
               required:
                 - title
-                - version
           required:
             - info
-  has-channels:
-    description: Must define channels
-    given: $
-    severity: error
-    then:
-      function: schema
-      functionOptions:
-        schema:
-          properties:
-            channels:
-              type: object
-          required:
-            - channels

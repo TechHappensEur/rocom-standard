@@ -112,7 +112,7 @@ channels:
             sequence:
               type: array
               items:
-                $ref: "#/components/schemas/NavigationNode"
+                $ref: "#/schemas/NavigationNode"
             timestamp:
               type: string
               format: date-time
