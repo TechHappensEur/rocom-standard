@@ -1,15 +1,48 @@
-extends:
-  - recommended
-
 rules:
-  operation-2xx-response: off
-  operation-success-response: off
-  info-license: off
-  no-eval-template-literals: warn
-  no-script-tags-in-description: warn
-  openapi-tags-alphabetical: off
-  openapi-tags-uniqueness: error
-  path-declaration-must-exist: error
-  path-parameters: error
-  no-ambiguous-paths: error
-  no-undefined-server: off
+  valid-asyncapi-version:
+    description: Must declare asyncapi version
+    given: $
+    severity: error
+    then:
+      function: schema
+      functionOptions:
+        schema:
+          properties:
+            asyncapi:
+              type: string
+          required:
+            - asyncapi
+  has-info-block:
+    description: Must have info block with title and version
+    given: $
+    severity: error
+    then:
+      function: schema
+      functionOptions:
+        schema:
+          properties:
+            info:
+              type: object
+              properties:
+                title:
+                  type: string
+                version:
+                  type: string
+              required:
+                - title
+                - version
+          required:
+            - info
+  has-channels:
+    description: Must define channels
+    given: $
+    severity: error
+    then:
+      function: schema
+      functionOptions:
+        schema:
+          properties:
+            channels:
+              type: object
+          required:
+            - channels
