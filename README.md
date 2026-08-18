@@ -19,6 +19,7 @@ robot systems to interoperate with enterprise orchestration layers.
 | Part 5 | Transport Profile & Bindings | DRAFT |
 | Part 6 | Security | DRAFT |
 | Part 7 | Data Governance | DRAFT |
+| Annex A | Engineering Practice Notes (Informative) | DRAFT |
 
 ## Licensing
 
