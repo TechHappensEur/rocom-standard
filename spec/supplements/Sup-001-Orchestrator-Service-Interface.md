@@ -77,6 +77,13 @@ approach among many.
 
 **Standard interface:** 13 endpoints (Agents + Tasks + Audit)
 **HRRM-specific:** 3 endpoints (Proposals)
+**Total:** 16 endpoints (13 standard + 3 HRRM-specific)
+
+> Note: Postman collection has 17 requests because "Cancel Task" is a
+> separate request for PATCH /tasks/{id} with `status: cancelled` — not
+> a distinct endpoint. The OpenAPI spec has 16 paths. The count of
+> 13 standard endpoints excludes the 3 proposal endpoints, which are
+> HRRM product features, not normative.
 
 ## Recommendation
 
