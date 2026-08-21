@@ -101,16 +101,16 @@ contract:
          "gdpr_workforce_data_source_consent",
          "eu_cra_class_b_robot"]
 
-    # --- Data Profile (fd-005 cap-006, fd-010) ---
+    # --- Data Profile ---
     # Minimal declaration: what data classes this agent delivers, where, and on what basis.
-    # Full sensor inventory belongs in the data-governance module (fd-010), not the provider contract.
+    # Full sensor inventory belongs in the data-governance module, not the provider contract.
     # Required for robots; optional for human agents.
     - name: data_profile
       type: "DataProfile (optional for humans, required for robots)"
-      description: "Minimal data governance declaration per agent: data classes delivered, declared destinations, lawful transfer basis. Enables real-time Art. 30 register from the agent registry. Full sensor inventory managed by data-governance module (fd-010)."
+      description: "Minimal data governance declaration per agent: data classes delivered, declared destinations, lawful transfer basis. Enables real-time Art. 30 register from the agent registry. Full sensor inventory managed by data-governance module."
       schema:
         DataProfile:
-          data_classes_delivered: "Array[String] — from data class taxonomy (fd-010 cap-001): operational_telemetry, diagnostic, sensor_payload, personal_data"
+          data_classes_delivered: "Array[String] — from data class taxonomy: operational_telemetry, diagnostic, sensor_payload, personal_data"
           declared_destinations: "Array[Destination]"
           Destination:
             destination_id: "String"
