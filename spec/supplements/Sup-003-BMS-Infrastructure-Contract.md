@@ -5,7 +5,7 @@
 # Scope: Define the normative BMS infrastructure contract for robot
 #        operations in healthcare buildings. Protocol-agnostic contract
 #        + informative mappings to BACnet/KNX/OPC UA.
-# NOTE:  This is a scope proposal. No normative spec text until approved.
+# NOTE:  Scope proposal. Phase 2 normative text produced in sup-003.md.
 
 ## 1. Purpose
 
