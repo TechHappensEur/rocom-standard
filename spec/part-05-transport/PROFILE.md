@@ -10,6 +10,15 @@ and chain-of-custody tracking on `rocom/v0/` extension topics.
 
 Standard VDA 5050 messages are never modified.
 
+## 1.1 Normative References
+
+This profile is based on **VDA 5050 version 2.1** (VDA 5050-2, Release 2.1, 2023).
+All references to "VDA 5050" in this profile refer to this specific version unless
+explicitly stated otherwise.
+
+The VDA 5050 topic namespace `vda5050/` and message schemas defined in VDA 5050 v2.1
+are used without modification. Rocom extensions use the separate `rocom/v0/` namespace.
+
 ## 2. Conformance Levels
 
 ### Level 1 — VDA 5050 Baseline
