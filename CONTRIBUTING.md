@@ -34,7 +34,12 @@ profiles, implementation notes.
 1. Open issue with `[Sup]` prefix
 2. Draft supplement as `spec/part-NN-<title>/sup-NNN.md`
 3. PR against `main`
-4. Maintainer assigns Sup number on merge
+4. Sup number is assigned from `spec/cp-registry.md` — registry update
+   is part of the same commit as the Sup content
+5. Maintainer reviews and merges
+
+**Numbering:** Numbers are assigned ONLY from `spec/cp-registry.md`.
+The registry is authoritative.
 
 ### Correction Proposals (CP-nnn)
 
@@ -50,7 +55,13 @@ missing MUST/SHALL modifiers.
 **Process:**
 1. Open issue with `[CP]` prefix and cite the exact Part/requirement ID
 2. PR with minimal diff — only the correction
-3. Maintainer assigns CP number on merge
+3. CP number is assigned from `spec/cp-registry.md` — registry update
+   is part of the same commit as the CP content
+4. Maintainer reviews and merges
+
+**Numbering:** Numbers are assigned ONLY from `spec/cp-registry.md`.
+The registry is authoritative — commit messages may reference the wrong
+number, but the registry entry stands.
 
 ### Full Part Revisions
 
