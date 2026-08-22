@@ -118,16 +118,26 @@ cost_model:
     base_cost_per_minute:
       type: number
       description: "Cost in EUR, normalized."
-    overtime_multiplier:
-      type: number
-      description: Applied outside availability windows.
     min_engagement_minutes:
       type: number
-    constraints:
+    cost_factors:
       type: array
-      items: string
+      items: object
       required: false
-      description: "Collective agreement rules, skill requirements."
+      description: >
+        Arbitrary cost modifiers (e.g., time-of-day,
+        location-based, regulatory). Structure is
+        implementation-defined.
+      properties:
+        factor_id:
+          type: string
+          description: Identifier for this factor.
+        weight:
+          type: number
+          description: Multiplicative weight.
+        applies_when:
+          type: string
+          description: Human-readable condition.
 
 # ====================================================================
 # Task (Part 4)

@@ -84,13 +84,16 @@ contract:
       schema:
         CostModel:
           base_cost_per_minute: "Float (in EUR, normalized)"
-          overtime_multiplier: "Float (applied outside availability_windows)"
           min_engagement_minutes: "Float (minimum dispatch duration)"
-          constraints: "Optional[Array[String]] — collective agreement rules, skill requirements"
+          cost_factors: "Optional[Array[CostFactor]] — arbitrary cost modifiers; implementation-defined structure"
+        CostFactor:
+          factor_id: "String — identifier for this factor"
+          weight: "Float — multiplicative weight"
+          applies_when: "String — human-readable condition"
       example: >-
-        { base_cost_per_minute: 0.85, overtime_multiplier: 1.5,
+        { base_cost_per_minute: 0.85,
           min_engagement_minutes: 15,
-          constraints: ["collective_agreement_section_4_2", "max_8h_daily_transport"] }
+          cost_factors: [{ factor_id: "overtime", weight: 1.5, applies_when: "outside availability windows" }] }
 
     # --- Compliance ---
     - name: compliance_flags
@@ -243,8 +246,15 @@ asyncapi_sketch: |
                 type: object
                 properties:
                   base_cost_per_minute: { type: number }
-                  overtime_multiplier: { type: number }
                   min_engagement_minutes: { type: number }
+                  cost_factors:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        factor_id: { type: string }
+                        weight: { type: number }
+                        applies_when: { type: string }
               compliance_flags:
                 type: array
                 items: { type: string }
