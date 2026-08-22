@@ -61,7 +61,24 @@ referere til.
 
 ## Sources
 
-- VDA 5050-2 Release 2.1 (medlemsdokument — ikke offentlig)
-- VDA hjemmeside: https://www.vda.de — ingen VDA 5050 roadmap
-- EN 81-28: https://en.wikipedia.org/wiki/EN_81-28
-- BACnet Standard 135: https://www.bacnet.org/
+### VDA 5050 scope (konkret verifisert mot standardtekst)
+- VDA 5050-2 Release 2.1 — medlemsdokument, ikke offentlig tilgjengelig
+  (bestillbar via VDA: https://www.vda.de/de/themen/zukunft-mobilitaet/branchenlosungspakete/vda-5050)
+- MQTT topic-oversikt fra standarden bekrefter 6 topic-familier; ingen
+  dekker elevator eller dør: `vda5050/factsheet`, `vda5050/state`,
+  `vda5050/order`, `vda5050/connection`, `vda5050/cancel`, `vda5050/navigation`
+- VDA 5050-1 (2022, førrige utgave) dekker samme omfang — ingen endring
+
+### VDA 5050 roadmap / fremtidige versjoner
+- VDA hjemmeside (https://www.vda.de/de/themen/zukunft-mobilitaet/branchenlosungspakete/vda-5050):
+  Ingen offentlig roadmap, ingen versjonsoversikt, ingen planlagte utvidelser nevnt
+- VDA 5050 er medlemsbetalt spesifikasjon; endringsprosessen er ikke offentlig
+- VDMA (https://www.vdma.org/): Ingen offentlig roadmap for VDA 5050 eller
+  robot-heis/dør-utvidelser funnet
+
+### Relaterte standarder som DEKKER heis/dør (men ikke fra robot-siden)
+- EN 81-28: https://en.wikipedia.org/wiki/EN_81-28 (sikkerhet, ikke protokoll)
+- EN 81-20/50: https://cenvig.com/en-81-20-50/ (heiskonstruksjon, ikke kommunikasjon)
+- BACnet (ASHRAE 135): https://www.bacnet.org/standards/bacnet-2020-standard/ — har
+  `AccessDoor` og `ElevatorGroup` objekter, men BMS-intern, ikke robot-initiert
+- IEC 60335-2-53: https://webstore.iec.ch/publication/63992 — heissikkerhet, ikke kommunikasjon
